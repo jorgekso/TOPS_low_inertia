@@ -11,7 +11,7 @@ import numpy as np
 import time
 import tops.dynamic as dps
 import tops.solvers as dps_sol
-import tops.utility_functions_Eirik as MThesis
+import tops.utility_functions_eirik as MThesis
 import importlib
 importlib.reload(dps)
 

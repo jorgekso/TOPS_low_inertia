@@ -9,7 +9,7 @@ import numpy as np
 import time
 import tops.dynamic as dps
 import tops.solvers as dps_sol
-import tops.utility_functions_Eirik as MThesis
+import tops.utility_functions_eirik as MThesis
 import importlib
 importlib.reload(dps)
 
@@ -18,10 +18,10 @@ if __name__ == '__main__':
     fault_Sn = 1400
     fault_P = 1400
     kinetic_energy_eps = 300e3
-    path = 'C:/Users/eirik/OneDrive - NTNU/Master/'
+    #path = 'C:/Users/eirik/OneDrive - NTNU/Master/'
 
 
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('../examples/dyn_sim/N45_case_data/')
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('examples/dyn_sim/N45_case_data/')
 
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
@@ -201,7 +201,8 @@ if __name__ == '__main__':
     # Power system model
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
-    import examples.dyn_sim.x0 as x0
+    #import examples.dyn_sim.x0 as x0
+    x_0 = ps.x_0.copy()
     # Power flow calculation
     ps.power_flow()
     # Initialization
