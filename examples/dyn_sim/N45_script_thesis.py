@@ -21,11 +21,12 @@ if __name__ == '__main__':
     fault_Sn = 1400 #1400 #1110
     fault_P = 1400
     kinetic_energy_eps = 300e3  # 300 MWs 180MWs #130MWs
-    path = 'C:/Users/eirik/OneDrive - NTNU/Master/'
+    #path = 'C:/Users/eirik/OneDrive - NTNU/Master/'
 
 
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(path)
-    actual_data = MThesis.Import_actual_data(path + 'faktiske hendelser/utfall Olkiluoto.xlsx')
+    #ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(path)
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('examples/dyn_sim/N45_case_data/')
+    #actual_data = MThesis.Import_actual_data(path + 'faktiske hendelser/utfall Olkiluoto.xlsx')
 
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
@@ -42,7 +43,8 @@ if __name__ == '__main__':
     # print(ENTSOE_exchange_data['Power transfer'].keys())
     # print('Data from Transparency:\n',ENTSOE_gen_data)
     # Load model
-    import tops.ps_models.n45_with_controls_adapted as model_data
+    #import tops.ps_models.n45_with_controls_adapted as model_data
+    import tops.ps_models.n45_with_controls as model_data
     model = model_data.load()
     # ------------------------------ Reparameterization to fit specific time-senario -----------------------------------
     index_area = model['buses'][0].index('Area')
@@ -235,7 +237,7 @@ if __name__ == '__main__':
     # Power system model
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
-    import examples.dyn_sim.x0 as x0
+    #import examples.dyn_sim.x0 as x0
     # Power flow calculation
     ps.power_flow()
 
@@ -243,7 +245,7 @@ if __name__ == '__main__':
     ps.init_dyn_sim()
     x0 = ps.x0.copy()
     v0 = ps.v0.copy()
-'
+
 
     # ---------------------------------------- Checking simulated results (stationary) --------------------------------
     for name, P in zip(ps.loads['Load'].par['name'], ps.loads['Load'].par['P']):
@@ -333,23 +335,23 @@ if __name__ == '__main__':
     print(sum(ps.gen['GEN'].par['S_n']))
     # ------------------------------------------------------------------------------
     #Open the Excel file in append mode using openpyxl engine. To save for printing initial power flow
-    with pd.ExcelWriter(path + 'dataframes_DynPSSimPy.xlsx',
-                        engine='openpyxl') as writer:
+    # with pd.ExcelWriter(path + 'dataframes_DynPSSimPy.xlsx',
+    #                     engine='openpyxl') as writer:
 
-        # Save the new DataFrame to the existing sheet (if it doesn't exist, it will create a new sheet)
-        pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}) \
-            .to_excel(writer, sheet_name='DynPSS_Gen', index=True)
+    #     # Save the new DataFrame to the existing sheet (if it doesn't exist, it will create a new sheet)
+    #     pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_Gen', index=True)
 
-        pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}) \
-            .to_excel(writer, sheet_name='DynPSS_Con', index=True)
+    #     pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_Con', index=True)
 
-        pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}) \
-            .to_excel(writer, sheet_name='DynPSS_trans', index=True)
+    #     pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_trans', index=True)
 
-        pd.DataFrame({'Link': list(export.keys()), 'exchange': list(export.values())}) \
-            .to_excel(writer, sheet_name='DynPSS_export', index=True)
+    #     pd.DataFrame({'Link': list(export.keys()), 'exchange': list(export.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_export', index=True)
 
-        print('Excel writing complete')
+    #     print('Excel writing complete')
     #-----------------------------------------------------------------------------
     #Dynamisk til master. Alt før det her er fra prosjektoppgave (forprosjekt)
     t = 0
@@ -457,22 +459,22 @@ if __name__ == '__main__':
     keys_realPower_reversed = [] # e.g: if NO_1-NO_2 not found from keys_realPower, check NO_2-NO_1 with reversed
     Flows_iloc = []
 
-    for k, key in enumerate(actual_data.keys()):
-        split = key.split(':')
-        if len(split) == 2:
-            if 'Frequency' in split[1]:
-                area_code = mapping_from_actual[split[0]]
-                keys_frequency.append(area_code)
-                frequency_iloc.append(k)
-            elif 'Real Power' in split[1]:
-                transfer_codes = split[0].split('-')
-                keys_realPower.append(
-                    mapping_from_actual[transfer_codes[0]] + '-' + mapping_from_actual[transfer_codes[1]])
-                keys_realPower_reversed.append(
-                    mapping_from_actual[transfer_codes[1]] + '-' + mapping_from_actual[transfer_codes[0]])
-                Flows_iloc.append(k)
-            else:
-                print('Unknown Split!!!!')
+    # for k, key in enumerate(actual_data.keys()):
+    #     split = key.split(':')
+    #     if len(split) == 2:
+    #         if 'Frequency' in split[1]:
+    #             area_code = mapping_from_actual[split[0]]
+    #             keys_frequency.append(area_code)
+    #             frequency_iloc.append(k)
+    #         elif 'Real Power' in split[1]:
+    #             transfer_codes = split[0].split('-')
+    #             keys_realPower.append(
+    #                 mapping_from_actual[transfer_codes[0]] + '-' + mapping_from_actual[transfer_codes[1]])
+    #             keys_realPower_reversed.append(
+    #                 mapping_from_actual[transfer_codes[1]] + '-' + mapping_from_actual[transfer_codes[0]])
+    #             Flows_iloc.append(k)
+    #         else:
+    #             print('Unknown Split!!!!')
 
     print('Checkpoint charlie')
     #Slicing results to Area:
@@ -509,11 +511,11 @@ if __name__ == '__main__':
             generators_plot.append(gen_name)
     list_frequency_sim = pd.DataFrame(list_frequency_sim).T.mean(axis=1)'''
 
-    for area in area_mapping.values():
-        if area in keys_frequency:
-            index_iloc = keys_frequency.index(area)
-            frequency_actual.append(actual_data.iloc[:, frequency_iloc[index_iloc]].to_list())
-            frequency_label.append(area)
+    # for area in area_mapping.values():
+    #     if area in keys_frequency:
+    #         index_iloc = keys_frequency.index(area)
+    #         frequency_actual.append(actual_data.iloc[:, frequency_iloc[index_iloc]].to_list())
+    #         frequency_label.append(area)
 
     voltages_in_area = []
     voltages_angle_in_area = []
@@ -530,31 +532,31 @@ if __name__ == '__main__':
     Flows_plot = []
     labels_flows = []
     Flows_actual = []
-    for k, transfer in enumerate(Flows.keys(), start=0):
-        if transfer in keys_realPower:
-            Flows_plot.append(Flows_all_itr[:, k])
-            labels_flows.append(transfer)
-            index_iloc = keys_realPower.index(transfer)
-            Flows_actual.append(actual_data.iloc[:, Flows_iloc[index_iloc]].apply(lambda x: x/1e6).to_list())
-        elif transfer in keys_realPower_reversed:
-            Flows_plot.append(Flows_all_itr[:, k])
-            labels_flows.append(transfer)
-            index_iloc = keys_realPower_reversed.index(transfer)
-            Flows_actual.append((actual_data.iloc[:, Flows_iloc[index_iloc]]).apply(lambda x: -x/1e6).tolist())
+    # for k, transfer in enumerate(Flows.keys(), start=0):
+    #     if transfer in keys_realPower:
+    #         Flows_plot.append(Flows_all_itr[:, k])
+    #         labels_flows.append(transfer)
+    #         index_iloc = keys_realPower.index(transfer)
+    #         Flows_actual.append(actual_data.iloc[:, Flows_iloc[index_iloc]].apply(lambda x: x/1e6).to_list())
+    #     elif transfer in keys_realPower_reversed:
+    #         Flows_plot.append(Flows_all_itr[:, k])
+    #         labels_flows.append(transfer)
+    #         index_iloc = keys_realPower_reversed.index(transfer)
+    #         Flows_actual.append((actual_data.iloc[:, Flows_iloc[index_iloc]]).apply(lambda x: -x/1e6).tolist())
 
-    #Average  frequency:
-    #Average of Actual data:
-    list_frequency_actual = list()
-    for k, plot in enumerate(frequency_actual):
-        list_frequency_actual.append([elem - plot[0] for elem in plot])
-        #ax.plot(actual_data['Timestamp'], [elem - plot[0] for elem in plot], label=frequency_label[k], linestyle='dashed')
-    Average_freq = []
-    # Iterate over each column
-    for j in range(len(list_frequency_actual[0])):
-        column_sum = 0
-        for i in range(len(list_frequency_actual)):
-            column_sum += list_frequency_actual[i][j]
-        Average_freq.append(column_sum / len(list_frequency_actual))
+    # #Average  frequency:
+    # #Average of Actual data:
+    # list_frequency_actual = list()
+    # for k, plot in enumerate(frequency_actual):
+    #     list_frequency_actual.append([elem - plot[0] for elem in plot])
+    #     #ax.plot(actual_data['Timestamp'], [elem - plot[0] for elem in plot], label=frequency_label[k], linestyle='dashed')
+    # Average_freq = []
+    # # Iterate over each column
+    # for j in range(len(list_frequency_actual[0])):
+    #     column_sum = 0
+    #     for i in range(len(list_frequency_actual)):
+    #         column_sum += list_frequency_actual[i][j]
+    #     Average_freq.append(column_sum / len(list_frequency_actual))
     #Average of simulated:
     list_frequency_sim = list()
     speed_results = result.xs(key='speed', axis='columns', level=1).drop(columns=['Virtual gen']) if add_virtual_gen \
