@@ -31,7 +31,8 @@ if __name__ == '__main__':
                            'L7020-2': 'FI-RU'}
 
     # Load model
-    import tops.ps_models.n45_tuned as model_data
+    #import tops.ps_models.n45_tuned as model_data
+    import tops.ps_models.n45_with_controls as model_data
     model = model_data.load()
     # ------------------------------ Reparameterization to fit specific time-senario -----------------------------------
     index_area = model['buses'][0].index('Area')
@@ -192,7 +193,7 @@ if __name__ == '__main__':
     index_droop = model['gov']['HYGOV'][0].index('R')
     Freq_bias = MThesis.calc_frequency_bias(model)
 
-    MThesis.HYGOV_to_simplified(model)
+    #MThesis.HYGOV_to_simplified(model)
     del index_P, index_Sn #Freeing up memory. These are not needed anymore
     del index_area, from_count, cot_phi, load_name, index_Q, index_H, added
     del other_from_count, other_load_name, other_to_count, other_transfer, area_transfer
@@ -202,7 +203,7 @@ if __name__ == '__main__':
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
     #import examples.dyn_sim.x0 as x0
-    x_0 = ps.x_0.copy()
+    #x_0 = ps.x_0.copy()
     # Power flow calculation
     ps.power_flow()
     # Initialization
