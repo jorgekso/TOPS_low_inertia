@@ -25,8 +25,9 @@ def read_to_file(result, file_path):
     #Convert comeplex numbers to strings
     for key, value in result.items():
         try:
-            result[key] = [[complex(x) for x in sublist] for sublist in list]
-        except ValueError:
+            if (isinstance(value[0][0], complex)): #check if item is a complex number
+                result[key] = [[str(x) for x in sublist] for sublist in value] #convert complex numbers to strings
+        except:
             pass
     
     with open(file_path, 'w') as file:
@@ -64,7 +65,7 @@ def format_results(path):
         for key, list in res.items(): 
             try:
                 res[key] = [[complex(x) for x in sublist] for sublist in list]
-            except ValueError:
+            except:
                 pass
     return results, file_names
 
@@ -77,8 +78,6 @@ def plot_freq(results, file_names, rocof=False):
     Parameters:
     results : list of dictionaries
         List of dictionaries containing simulation results.
-    file_names : list of strings
-        List of file names.
     rocof : bool, optional
         If True, plot ROCOF. Default is False.
 
