@@ -20,7 +20,7 @@ if __name__ == '__main__':
     fault_bus = '7000'#'3359' #7000
     fault_Sn = 1400 #1400 #1110
     fault_P = 1400
-    kinetic_energy_eps = 130e3  # 300 MWs 180MWs #130MWs
+    kinetic_energy_eps = 300e3  # 300 MWs 180MWs #130MWs
     #path = 'C:/Users/eirik/OneDrive - NTNU/Master/'
 
 
