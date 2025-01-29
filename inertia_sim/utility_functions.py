@@ -4,6 +4,39 @@ from matplotlib import rcParams
 from pathlib import Path
 import json
 
+
+def read_to_file(result, file_path):
+    """
+    Reads the results to a .json files.
+
+    Parameters:
+    results : dictionary
+        Dictionary containing simulation results.
+    file_path : string  
+        Path to save the file.
+
+    """
+
+    for key, value in result.items():
+        for i, item in enumerate(value):
+            if isinstance(item, np.ndarray): #check if item is a numpy array
+                result[key][i] = item.tolist()
+    
+    #Convert comeplex numbers to strings
+    for key, value in result.items():
+        try:
+            result[key] = [[complex(x) for x in sublist] for sublist in list]
+        except ValueError:
+            pass
+    
+    with open(file_path, 'w') as file:
+        json.dump(result, file, indent=4)
+    
+    print('Results saved to:', file_path)
+
+
+
+
 def format_results(path):
     """
     Reads and formats the results from .json files in a folder.
