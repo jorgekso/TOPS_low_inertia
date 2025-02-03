@@ -21,7 +21,7 @@ if __name__ == '__main__':
     t = 0
     t_end = 50
 
-    event_flag = True
+    event_flag = False
 
     x_0 = ps.x_0.copy()
 
@@ -50,9 +50,9 @@ if __name__ == '__main__':
         res['gen_P'].append(ps.gen['GEN'].P_e(x, v).copy())
         res['load_P'].append(ps.loads['Load'].P(x, v).copy())
         res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
-    # Deletes the disconnected generator from the results more generally
-    disconnected_gen_idx = -1  # Index of the disconnected generator
-
+    
+    disconnected_gen_idx = -1  # Index of the disconnected generator, should be the last one bc of the virtual generator added.
+    # Deletes the disconnected generator from the results
     # Convert lists to numpy arrays before deleting elements
     for key in ['gen_speed', 'gen_I', 'gen_P']:
         res[key] = np.array(res[key])
@@ -64,5 +64,5 @@ if __name__ == '__main__':
 
     res['bus_names'].append(ps.buses['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
-    uf.read_to_file(res, 'Results/Base/gen_trip.json')
+    uf.read_to_file(res, 'Results/Base/no_fault.json')
 

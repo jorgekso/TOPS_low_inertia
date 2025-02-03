@@ -144,9 +144,11 @@ def plot_gen_speed(results, file_names, gen_name=None):
         Name of the generator to plot. If None, plot all generators.
     """
     plt.figure()
+    it = 0   
     for res in results:
         if gen_name:
-            plt.plot(res['t'], np.array(res['gen_speed'])[:, res['gen_name'].index(gen_name)], label=gen_name)
+            plt.plot(res['t'], np.array(res['gen_speed'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
+            it += 1
         else:
             for gen in res['gen_name']:
                 plt.plot(res['t'], np.array(res['gen_speed'])[:, res['gen_name'].index(gen)], label=gen)

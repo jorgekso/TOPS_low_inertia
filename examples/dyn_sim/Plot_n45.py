@@ -6,5 +6,5 @@ if __name__ == '__main__':
     folder_path = '/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/Results/Base/'
     results,file_names = uf.format_results(folder_path)
     uf.plot_freq(results, file_names)
-    uf.plot_gen_speed(results, file_names)
+    uf.plot_gen_speed(results, file_names,'G3000-1')
     plt.show()
