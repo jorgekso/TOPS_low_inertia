@@ -8,7 +8,7 @@ import importlib
 importlib.reload(dps)
 import numpy as np
 
-from utility_functions import read_to_file, format_results, plot_freq
+from inertia_sim.utility_functions_NJ import read_to_file, format_results, plot_freq
 
 if __name__ == '__main__':
     #for iteration in np.arange(550,900,50):
