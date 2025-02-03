@@ -4,7 +4,7 @@ import tops.dynamic as dps
 import importlib
 importlib.reload(dps)
 
-def init_n45(fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
     # ------------------------------ Simulation parameters -----------------------------------
     # fault_bus = '7000' #'3359' #7000
     # fault_Sn = 1400 #1400 #1110
