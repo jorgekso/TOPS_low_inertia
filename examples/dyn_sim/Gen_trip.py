@@ -10,7 +10,7 @@ import importlib
 importlib.reload(dps)
 import numpy as np 
 sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/')  # Corrected path to inertia_sim module
-import inertia_sim.utility_functions as uf
+import inertia_sim.utility_functions_NJ as uf
 
 if __name__ == '__main__':
     ps = n45_functions.init_n45()
