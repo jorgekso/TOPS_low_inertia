@@ -10,7 +10,7 @@ importlib.reload(dps)
 if __name__ == '__main__':
 
     # Load model
-    import tops.ps_models.k2a as model_data
+    import tops.ps_models.n45_with_controls as model_data
     importlib.reload(model_data)
     model = model_data.load()
 
@@ -38,9 +38,9 @@ if __name__ == '__main__':
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
 
         # Short circuit
-        if t > 1 and event_flag:
-            event_flag = False
-            ps.lines['Line'].event(ps, ps.lines['Line'].par['name'][0], 'disconnect')
+        # if t > 1 and event_flag:
+        #     event_flag = False
+        #     ps.lines['Line'].event(ps, ps.lines['Line'].par['name'][0], 'disconnect')
 
         # Simulate next step
         result = sol.step()

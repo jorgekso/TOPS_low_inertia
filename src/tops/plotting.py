@@ -4,12 +4,14 @@ import numpy as np
 import matplotlib.cm as cm
 
 
-def plot_eigs(eigs):
+def plot_eigs(eigs,xlim=None,ylim=None):
     fig, ax = plt.subplots(1)
     sc = ax.scatter(eigs.real, eigs.imag)
     ax.axvline(0, color='k', linewidth=0.5)
     ax.axhline(0, color='k', linewidth=0.5)
     ax.grid(True)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
 
     annot = ax.annotate("", xy=(0, 0), xytext=(20, 20), textcoords="offset points",
                         bbox=dict(boxstyle="round", fc="w"),
