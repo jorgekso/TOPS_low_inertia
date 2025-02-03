@@ -243,5 +243,5 @@ def calc_frequency_bias(model):
                     P_TGOV1 += row_gen[index_Sn]
                     break
     Freq_bias = Freq_bias / model['f']
-    print('P_HYGOV',P_HYGOV,'P_TGOV', P_TGOV1)
+    #print('P_HYGOV',P_HYGOV,'P_TGOV', P_TGOV1)
     return Freq_bias
