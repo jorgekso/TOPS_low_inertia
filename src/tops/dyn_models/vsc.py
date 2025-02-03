@@ -77,7 +77,7 @@ class VSC_SI(DAEModel):
     """
 
     VSC PQ model with synthetic inertia.
-    (Based on Sjur Foyne's VSC_PQ model using differential equations)
+    (Based on Sjur Foyen's VSC_PQ model using differential equations)
 
 
     Instantiate:
@@ -199,6 +199,7 @@ class VSC_SI(DAEModel):
 
     def v_q(self,x,v):
         return (self.v_t(x,v)*np.exp(-1j*self.local_view(x)['angle'])).imag
+    
     def p_e(self, x, v):
         return self.s_e(x,v).real
 
