@@ -213,16 +213,15 @@ def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
     ps.use_numba = True
     return ps
 
-def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, filename = '300MWs'):
+def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True):
     ps = init_n45(fault_bus, fault_Sn, fault_P, kinetic_energy_eps)
     ps.power_flow()
     ps.init_dyn_sim()
     x0 = ps.x0.copy()
     v0 = ps.v0.copy()
-    t = 0
-    t_end = 50
 
-    event_flag = True
+
+
 
     x_0 = ps.x_0.copy()
 
@@ -236,7 +235,7 @@ def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
 
     while t < t_end:
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
-        if t > 17.6 and event_flag:
+        if t > t_trip and event_flag:
             event_flag = False
             ps.lines['Line'].event(ps, 'Virtual line', 'disconnect')
         result = sol.step()
@@ -265,6 +264,6 @@ def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
 
     res['bus_names'].append(ps.buses['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
-    uf.read_to_file(res, 'Results/Base/'+filename+'.json')
+    uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
 
