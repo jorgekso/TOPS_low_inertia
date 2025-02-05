@@ -2,15 +2,15 @@ import sys
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import time
-sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/examples/')  # Corrected path to dyn_sim module
+sys.path.append('//Users/noralillelien/Documents/TOPS_low_inertia/')  # Corrected path to dyn_sim module
 import dyn_sim.n45_functions as n45_functions
 import tops.dynamic as dps
 import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
 import numpy as np 
-sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/')
-import inertia_sim.utility_functions as uf
+sys.path.append('/Users/noralillelien/Documents/TOPS_low_inertia/')
+import inertia_sim.utility_functions_NJ as uf
 
 if __name__ == '__main__':
     ps = n45_functions.init_n45()
