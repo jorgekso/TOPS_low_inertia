@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from pathlib import Path
 import json
+import os
 
 
 def read_to_file(result, file_path):
@@ -124,10 +125,21 @@ def plot_power_VSC(results, file_names, VSC_name):
         Name of the VSC to plot.
     """
     plt.figure()
+    index = 0
+    for name in results[0]['VSC_name'][0]:
+        if(name == VSC_name):
+            break
+        else:
+            index += 1
+    it = 0
     for res in results:
-        plt.plot(res['t'], np.abs(res[VSC_name]), label = VSC_name)
+        
+        plt.plot(res['t'], ([row[index] for row in res['VSC_p']]), label = file_names[it].stem)# label = res['VSC_name'][0][index]+' '+file_names[i].stem)
+        it += 1
     plt.xlabel('Time [s]')
+    plt.legend()
     plt.ylabel('Power [MW]')
+    plt.title(f'Active power output from {res['VSC_name'][0][index]}')
     plt.grid()
  
     
