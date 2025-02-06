@@ -3,4 +3,4 @@ if __name__ == '__main__':
     import n45_functions as func
     #iterates over the different kinetic energy scenarios
     
-    func.gen_trip('7000',1400,1400,300*1e3,'HVDC/HVDCnewLoadFlow',0,70,37.6,True)
+    func.gen_trip('7000',1400,1400,300*1e3,'N45_tests/tihi',0,70,37.6,True, True)

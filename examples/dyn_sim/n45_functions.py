@@ -1,13 +1,13 @@
 import sys
 from collections import defaultdict
 import time
-sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/examples/')  # Corrected path to dyn_sim module
+sys.path.append('/Users/noralillelien/Documents/TOPS_low_inertia/')  # Corrected path to dyn_sim module
 import tops.dynamic as dps
 import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
 import numpy as np 
-sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/')  # Corrected path to inertia_sim module
+sys.path.append('/Users/noralillelien/Documents/TOPS_low_inertia/')  # Corrected path to inertia_sim module
 import inertia_sim.utility_functions_NJ as uf
 import tops.utility_functions_eirik as MThesis
 import tops.ps_models.n45_with_controls as model_data
@@ -213,7 +213,7 @@ def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
     ps.use_numba = True
     return ps
 
-def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True):
+def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
     ps = init_n45(fault_bus, fault_Sn, fault_P, kinetic_energy_eps)
     ps.power_flow()
     ps.init_dyn_sim()
@@ -250,6 +250,10 @@ def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
         res['gen_P'].append(ps.gen['GEN'].P_e(x, v).copy())
         res['load_P'].append(ps.loads['Load'].P(x, v).copy())
         res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
+        if(VSC):
+            res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
+            res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
+            res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
     
     disconnected_gen_idx = -1  # Index of the disconnected generator, should be the last one bc of the virtual generator added.
     # Deletes the disconnected generator from the results
