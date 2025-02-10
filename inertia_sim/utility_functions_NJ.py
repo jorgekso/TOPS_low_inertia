@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from pathlib import Path
 import json
+import os
 
 
 def read_to_file(result, file_path):
@@ -69,6 +70,32 @@ def format_results(path):
                 pass
     return results, file_names
 
+def plot_gen(results, file_names, gen_name=None):
+    """
+    Plot generator power output results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+     gen_name : string, optional
+        Name of the generator to plot. If None, plot all generators.
+    """
+    plt.figure()
+    it = 0   
+    for res in results:
+        if gen_name:
+            plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
+            it += 1
+        else:
+            for gen in res['gen_name']:
+                plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'].index(gen)], label=gen)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Speed [p.u.]')
+    plt.grid()
+    plt.legend()
+
 
 
 def plot_freq(results, file_names, rocof=False):
@@ -107,7 +134,7 @@ def plot_freq(results, file_names, rocof=False):
         plt.legend()
             
 
-    plt.show()
+
 
     return None
 
@@ -124,13 +151,49 @@ def plot_power_VSC(results, file_names, VSC_name):
         Name of the VSC to plot.
     """
     plt.figure()
+    index = 0
+    for name in results[0]['VSC_name'][0]:
+        if(name == VSC_name):
+            break
+        else:
+            index += 1
+    it = 0
     for res in results:
-        plt.plot(res['t'], np.abs(res[VSC_name]), label = VSC_name)
+        
+        plt.plot(res['t'], ([row[index] for row in res['VSC_p']]), label = file_names[it].stem)# label = res['VSC_name'][0][index]+' '+file_names[i].stem)
+        it += 1
     plt.xlabel('Time [s]')
+    plt.legend()
     plt.ylabel('Power [MW]')
+    plt.title(f'Active power output from {res['VSC_name'][0][index]}')
     plt.grid()
-    plt.show()
+ 
     
+def plot_gen_speed(results, file_names, gen_name=None):
+    """
+    Plot generator speed results from simulation.
 
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+    gen_name : string, optional
+        Name of the generator to plot. If None, plot all generators.
+    """
+    plt.figure()
+    it = 0   
+    for res in results:
+        if gen_name:
+            plt.plot(res['t'], np.array(res['gen_speed'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
+            it += 1
+        else:
+            for gen in res['gen_name']:
+                plt.plot(res['t'], np.array(res['gen_speed'])[:, res['gen_name'].index(gen)], label=gen)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Speed [p.u.]')
+    plt.grid()
+    plt.legend()
+    
 
 
