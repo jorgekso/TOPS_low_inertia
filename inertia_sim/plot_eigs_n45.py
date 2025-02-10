@@ -5,11 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/examples/')  # Corrected path to dyn_sim module
-import dyn_sim.n45_functions as n45_functions
+import init_N45 as n45_functions
 import tops.ps_models.n45_with_controls_HVDC as model_data
 if __name__ == '__main__':
 
-    ps = n45_functions.init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,model_data = model_data)
+    ps = n45_functions.init_n45(model_data = model_data,fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3)
     ps.init_dyn_sim()
 
     # Perform system linearization
