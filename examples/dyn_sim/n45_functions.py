@@ -13,7 +13,7 @@ import tops.utility_functions_eirik as MThesis
 import tops.ps_models.n45_with_controls as model_data
 importlib.reload(dps)
 
-def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,model_data = model_data):
     # ------------------------------ Simulation parameters -----------------------------------
     # fault_bus = '7000' #'3359' #7000
     # fault_Sn = 1400 #1400 #1110
@@ -213,8 +213,8 @@ def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
     ps.use_numba = True
     return ps
 
-def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True):
-    ps = init_n45(fault_bus, fault_Sn, fault_P, kinetic_energy_eps)
+def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True, model_data = model_data):
+    ps = init_n45(fault_bus, fault_Sn, fault_P, kinetic_energy_eps,model_data)
     ps.power_flow()
     ps.init_dyn_sim()
     x0 = ps.x0.copy()

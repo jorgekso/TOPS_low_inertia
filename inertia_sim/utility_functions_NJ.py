@@ -165,7 +165,7 @@ def plot_power_VSC(results, file_names, VSC_name):
     plt.xlabel('Time [s]')
     plt.legend()
     plt.ylabel('Power [MW]')
-    plt.title(f'Active power output from {res['VSC_name'][0][index]}')
+    #plt.title(f'Active power output from {res['VSC_name'][0][index]}')
     plt.grid()
  
     
