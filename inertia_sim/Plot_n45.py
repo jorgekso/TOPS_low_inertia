@@ -1,7 +1,7 @@
 import sys
 from config import system_path
 sys.path.append(system_path)
-import inertia_sim.utility_functions_NJ as uf
+import utility_functions_NJ as uf
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':  
