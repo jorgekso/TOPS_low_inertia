@@ -1,6 +1,6 @@
 
 import tops.ps_models.n45_with_controls_HVDC as model_data 
-from n45_functions import init_n45 
+from inertia_sim.not_in_use.n45_functions import init_n45 
 import pandas as pd
 
 

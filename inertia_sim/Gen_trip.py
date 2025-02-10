@@ -1,6 +1,6 @@
 if __name__ == '__main__':
     #This code is used to generate a trip of a 1400MW generator in the 3359 bus of the Nordic 45 system.
-    import n45_functions as func
+    import inertia_sim.not_in_use.n45_functions as func
     #iterates over the different kinetic energy scenarios
     import tops.ps_models.n45_with_controls_HVDC as n45
     func.gen_trip(fault_bus = '7000',fault_Sn = 1400,fault_P=1400,kinetic_energy_eps=300*1e3, 

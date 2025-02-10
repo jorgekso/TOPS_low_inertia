@@ -1,28 +1,39 @@
 import sys
 from collections import defaultdict
 import time
-sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/examples/')  # Corrected path to dyn_sim module
+from config import system_path
+sys.path.append(system_path)  # Corrected path to dyn_sim module
 import tops.dynamic as dps
 import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
 import numpy as np 
-sys.path.append('/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/')  # Corrected path to inertia_sim module
 import inertia_sim.utility_functions_NJ as uf
 import tops.utility_functions_eirik as MThesis
-import tops.ps_models.n45_with_controls as model_data
+import tops.ps_models.n45_with_controls_HVDC as model_data
 importlib.reload(dps)
 
-def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,model_data = model_data):
-    # ------------------------------ Simulation parameters -----------------------------------
-    # fault_bus = '7000' #'3359' #7000
-    # fault_Sn = 1400 #1400 #1110
-    # fault_P = 1400
-    # kinetic_energy_eps = 300e3  # 300 MWs 180MWs #130MWs
 
+def init_n45(model_data, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+    """
+    Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
+
+    Parameters:
+    model_data : dictionary
+        Dictionary containing the model data.
+    fault_bus : string
+        The bus number of the fault.
+    fault_Sn : float
+        The nominal power of the fault.
+    fault_P : float 
+        The active power of the fault.
+    kinetic_energy_eps : float
+        The kinetic energy of the EPS.
+
+    """
 
     #Accessing the case data and saving it in Dataframe format
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('examples/dyn_sim/N45_case_data/')
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
                            'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
@@ -31,6 +42,7 @@ def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
                            'L7020-2': 'FI-RU'}
     #Initializing the model from the load data in n45_with_controls
     model = model_data.load()
+
     # ------------------------------ Reparameterization to fit specific time-senario -----------------------------------
     index_area = model['buses'][0].index('Area')
     area_mapping = {24: 'SE_4', 23: 'SE_3', 22: 'SE_2', 21: 'SE_1', 11: 'NO_1', 12: 'NO_2', 13: 'NO_3',
@@ -213,8 +225,68 @@ def init_n45(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
     ps.use_numba = True
     return ps
 
-def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True, model_data = model_data):
-    ps = init_n45(fault_bus, fault_Sn, fault_P, kinetic_energy_eps,model_data)
+def init_VSC(ps):
+    """
+    Initializes the VSC-HVDC transmission in the Nordic 45 system from N45_case_data folder.
+
+    Parameters:
+    ps : PowerSystemModel
+        The power system model.
+    """
+
+    
+    vsc_international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB','L8700-2': 'SE_4-LT', 'L7020-1': 'FI-EE'} #Load names of international links with VSC-HVDC
+    
+    vsc_power_exchange = {'NO_2-DE': 0.0, 'NO_2-GB': 0.0, 'SE_4-LT': 0, 'FI-EE': 0.0} #Power exchange with VSC-HVDC
+
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
+
+    for link, load in ENTSOE_exchange_data.iterrows():
+        if link in vsc_power_exchange.keys():
+            vsc_power_exchange[link] = load['Power transfer']
+
+
+
+    for name in ps.loads['Load'].par['name']:
+        if name in vsc_international_links.keys():
+            ps.loads['Load'].y_load = 0 #Disconnecting the load
+            
+        
+    for name, load in vsc_power_exchange.items():
+        for index in range(len(ps.vsc['VSC_SI'].par['name'])):
+            if name == ps.vsc['VSC_SI'].par['name'][index]:
+                power = -load/ps.vsc['VSC_SI'].par['S_n']
+                ps.vsc['VSC_SI'].set_input('p_ref', power)
+            
+
+def gen_trip(model_data, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
+    """
+    Simulates a generator trip in the Nordic 45 system.
+    Parameters:
+    model_data : dictionary
+        Dictionary containing the model data.
+    fault_bus : string
+        The bus number of the fault.
+    fault_Sn : float
+        The nominal power of the fault.
+    fault_P : float
+        The active power of the fault.
+    kinetic_energy_eps : float
+        The kinetic energy of the EPS.
+    folderandfilename : string
+        The folder and filename of the results.
+    t : float
+        The initial time of the simulation.
+    t_end : float
+        The end time of the simulation.
+    t_trip : float
+        The time of the generator trip.
+    event_flag : bool
+        If True, the generator trip event is triggered.
+    VSC : bool
+        If True, the VSC is included in the simulation.
+    """
+    ps = init_n45(model_data, fault_bus, fault_Sn, fault_P, kinetic_energy_eps)
     ps.power_flow()
     ps.init_dyn_sim()
     x0 = ps.x0.copy()
@@ -235,6 +307,7 @@ def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
 
     while t < t_end:
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
+
         if t > t_trip and event_flag:
             event_flag = False
             ps.lines['Line'].event(ps, 'Virtual line', 'disconnect')
@@ -250,6 +323,10 @@ def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
         res['gen_P'].append(ps.gen['GEN'].P_e(x, v).copy())
         res['load_P'].append(ps.loads['Load'].P(x, v).copy())
         res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
+        if(VSC):
+            res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
+            res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
+            res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
     
     disconnected_gen_idx = -1  # Index of the disconnected generator, should be the last one bc of the virtual generator added.
     # Deletes the disconnected generator from the results
@@ -265,5 +342,4 @@ def gen_trip(fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_ep
     res['bus_names'].append(ps.buses['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
-
 
