@@ -70,6 +70,32 @@ def format_results(path):
                 pass
     return results, file_names
 
+def plot_gen(results, file_names, gen_name=None):
+    """
+    Plot generator power output results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+     gen_name : string, optional
+        Name of the generator to plot. If None, plot all generators.
+    """
+    plt.figure()
+    it = 0   
+    for res in results:
+        if gen_name:
+            plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
+            it += 1
+        else:
+            for gen in res['gen_name']:
+                plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'].index(gen)], label=gen)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Speed [p.u.]')
+    plt.grid()
+    plt.legend()
+
 
 
 def plot_freq(results, file_names, rocof=False):
