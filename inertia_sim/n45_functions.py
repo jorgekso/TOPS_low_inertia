@@ -1,13 +1,13 @@
 import sys
 from collections import defaultdict
 import time
-sys.path.append('/Users/noralillelien/Documents/TOPS_low_inertia/')  # Corrected path to dyn_sim module
+from config import system_path
+sys.path.append(system_path)  # Corrected path to dyn_sim module
 import tops.dynamic as dps
 import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
 import numpy as np 
-sys.path.append('/Users/noralillelien/Documents/TOPS_low_inertia/')  # Corrected path to inertia_sim module
 import inertia_sim.utility_functions_NJ as uf
 import tops.utility_functions_eirik as MThesis
 import tops.ps_models.n45_with_controls_HVDC as model_data

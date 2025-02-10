@@ -1,7 +1,9 @@
 import sys
-sys.path.append('/Users/noralillelien/Documents/TOPS_low_inertia/')
+from config import system_path
+sys.path.append(system_path)
 import inertia_sim.utility_functions_NJ as uf
 import matplotlib.pyplot as plt
+
 if __name__ == '__main__':  
     folder_path = '/Users/noralillelien/Documents/TOPS_low_inertia/Results/pf_tests/'
     results,file_names = uf.format_results(folder_path)
