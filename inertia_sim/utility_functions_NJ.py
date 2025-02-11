@@ -109,19 +109,19 @@ def plot_freq(results, file_names, rocof=False):
         If True, plot ROCOF. Default is False.
 
     """
-    plt.rcParams.update({
+    # plt.rcParams.update({
 
-        "font.family": "Dejavu serif",
+    #     "font.family": "Dejavu serif",
 
-        "font.serif": ["Computer Modern Roman"],
-        "font.size": 12,           # Default font size
-        "axes.titlesize": 14,      # Font size for axes titles
-        "axes.labelsize": 14,      # Font size for x and y labels
-        "xtick.labelsize": 12,     # Font size for x tick labels
-        "ytick.labelsize": 12,     # Font size for y tick labels
-        "legend.fontsize": 12,     # Font size for legend
-        "figure.titlesize": 16     # Font size for figure title
-    })
+    #     "font.serif": ["Computer Modern Roman"],
+    #     "font.size": 12,           # Default font size
+    #     "axes.titlesize": 14,      # Font size for axes titles
+    #     "axes.labelsize": 14,      # Font size for x and y labels
+    #     "xtick.labelsize": 12,     # Font size for x tick labels
+    #     "ytick.labelsize": 12,     # Font size for y tick labels
+    #     "legend.fontsize": 12,     # Font size for legend
+    #     "figure.titlesize": 16     # Font size for figure title
+    # })
 
     #Plot frequency
     plt.figure()
