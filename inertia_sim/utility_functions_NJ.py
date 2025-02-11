@@ -110,7 +110,7 @@ def plot_freq(results, file_names, rocof=False):
 
     """
     plt.rcParams.update({
-        "font.family": "serif",
+        "font.family": "Dejavu serif",
         "font.serif": ["Computer Modern Roman"],
         "font.size": 12,           # Default font size
         "axes.titlesize": 14,      # Font size for axes titles
