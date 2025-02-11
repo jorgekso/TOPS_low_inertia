@@ -4,7 +4,7 @@ import inertia_sim.utility_functions_NJ as uf
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':  
-    folder_path = '//Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/Results/H_EPS/'
+    folder_path = '//Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/Results/PSS/'
     results,file_names = uf.format_results(folder_path)
     uf.plot_freq(results, file_names)
     #uf.plot_gen(results, file_names)

@@ -54,8 +54,7 @@ def phasor(vec, start=0j, ax=None, **kwargs):
                        annotation_clip=False)
 
 
-def plot_mode_shape(mode_shape, ax=None, normalize=False, xy0=np.empty(0), linewidth=2, auto_lim=False, colors=cm.get_cmap('Set1')):
-
+def plot_mode_shape(mode_shape, ax=None, normalize=False, labels=None, xy0=np.empty(0), linewidth=2, auto_lim=False, colors=cm.get_cmap('Set1')):
     if not ax:
         ax = plt.subplot(111, projection='polar')
     if auto_lim:
@@ -66,22 +65,30 @@ def plot_mode_shape(mode_shape, ax=None, normalize=False, xy0=np.empty(0), linew
     ax.axes.get_xaxis().set_major_formatter(NullFormatter())
     ax.axes.get_yaxis().set_major_formatter(NullFormatter())
     ax.grid(color=[0.85, 0.85, 0.85])
-    # f_txt = ax.set_xlabel('f={0:.2f}'.format(f), color=cluster_color_list(), weight='bold', family='Times New Roman', )
 
     if normalize:
         mode_shape_max = mode_shape[np.argmax(np.abs(mode_shape))]
         if abs(mode_shape_max) > 0:
             mode_shape = mode_shape * np.exp(-1j * np.angle(mode_shape_max)) / np.abs(mode_shape_max)
 
+    max_length = np.max(np.abs(mode_shape))
+    threshold = 0.5 * max_length
+
+    # Remove yellow from the color map
+    colors = [colors(i / len(mode_shape)) for i in range(len(mode_shape)) if colors(i / len(mode_shape)) != (1.0, 1.0, 0.0, 1.0)]
+
     pl = []
     for i, (vec, xy0_) in enumerate(zip(mode_shape, xy0)):
-        pl.append(ax.annotate("",
-                              xy=(np.angle(vec), np.abs(vec)),
-                              xytext=(np.angle(xy0_), np.abs(xy0_)),
-                              arrowprops=dict(arrowstyle="->",
-                                              #linewidth=linewidth,
-                                              #linestyle=style_,
-                                              color=colors(i),
-                                              )))  # , headwidth=1, headlength = 1))
+        if np.abs(vec) >= threshold:
+            pl.append(ax.annotate("",
+                                  xy=(np.angle(vec), np.abs(vec)),
+                                  xytext=(np.angle(xy0_), np.abs(xy0_)),
+                                  arrowprops=dict(arrowstyle="->",
+                                                  color=colors[i % len(colors)])))
+            
+
+    if labels is not None:
+        handles = [plt.Line2D([0], [0], color=colors[i % len(colors)], lw=2) for i in range(len(mode_shape)) if np.abs(mode_shape[i]) >= threshold]
+        ax.legend(handles, [labels[i] for i in range(len(mode_shape)) if np.abs(mode_shape[i]) >= threshold], loc='center left', bbox_to_anchor=(1, 0.5), fontsize='small')
 
     return pl
