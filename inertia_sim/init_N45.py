@@ -8,13 +8,15 @@ import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
 import numpy as np 
-import inertia_sim.utility_functions_NJ as uf
+import utility_functions_NJ as uf
 import tops.utility_functions_eirik as MThesis
 import tops.ps_models.n45_with_controls_HVDC as model_data
 importlib.reload(dps)
 import pandas as pd
+import pandas as pd
 
 
+def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
 def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
@@ -224,6 +226,9 @@ def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P 
 
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
+
+    if display_pf:
+        display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
 
     if display_pf:
         display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
