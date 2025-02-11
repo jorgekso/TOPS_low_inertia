@@ -110,7 +110,9 @@ def plot_freq(results, file_names, rocof=False):
 
     """
     plt.rcParams.update({
-        "font.family": "serif",
+
+        "font.family": "Dejavu serif",
+
         "font.serif": ["Computer Modern Roman"],
         "font.size": 12,           # Default font size
         "axes.titlesize": 14,      # Font size for axes titles
@@ -176,7 +178,7 @@ def plot_power_VSC(results, file_names, VSC_name):
     plt.xlabel('Time [s]')
     plt.legend()
     plt.ylabel('Power [MW]')
-    plt.title(f'Active power output from {res['VSC_name'][0][index]}')
+    #plt.title(f'Active power output from {res['VSC_name'][0][index]}')
     plt.grid()
  
     

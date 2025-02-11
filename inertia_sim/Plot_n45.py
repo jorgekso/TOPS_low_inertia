@@ -1,7 +1,9 @@
 import sys
+
 from config import system_path
 sys.path.append(system_path)
 import utility_functions_NJ as uf
+
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
@@ -24,6 +26,7 @@ if __name__ == '__main__':
     # })
 
     folder_path = '/Users/noralillelien/Documents/TOPS_low_inertia/Results/pf_tests/'
+
     results,file_names = uf.format_results(folder_path)
     uf.plot_freq(results, file_names)
     #uf.plot_gen(results, file_names)

@@ -8,7 +8,7 @@ import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
 import numpy as np 
-import inertia_sim.utility_functions_NJ as uf
+import utility_functions_NJ as uf
 import tops.utility_functions_eirik as MThesis
 import tops.ps_models.n45_with_controls_HVDC as model_data
 importlib.reload(dps)
