@@ -16,7 +16,7 @@ import pandas as pd
 import pandas as pd
 
 
-def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+
 def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
