@@ -447,9 +447,6 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
                 export[area] += power * s_b
 
     
-
-
-
     print(pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}))
     print(pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}))
     print(pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}))
