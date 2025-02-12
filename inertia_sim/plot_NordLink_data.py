@@ -29,6 +29,21 @@ if __name__ == '__main__':
     path = system_path+'inertia_sim/N45_case_data_NordLink/Case-Norlink.xlsx'
     data = import_NordLink_data(path)
 
+    plt.rcParams.update({
+
+        "font.family": "Dejavu serif",
+
+        "font.serif": ["Computer Modern Roman"],
+        "font.size": 12,           # Default font size
+        "axes.titlesize": 14,      # Font size for axes titles
+        "axes.labelsize": 14,      # Font size for x and y labels
+        "xtick.labelsize": 12,     # Font size for x tick labels
+        "ytick.labelsize": 12,     # Font size for y tick labels
+        "legend.fontsize": 12,     # Font size for legend
+        "figure.titlesize": 16     # Font size for figure title
+    })
+
+
     # Check if the necessary columns exist
     required_columns = ['Timestamp', 'Frequency: FI', 'Frequency: NO1', 'Frequency: NO2', 'Frequency: NO3']
     if not all(col in data.columns for col in required_columns):
