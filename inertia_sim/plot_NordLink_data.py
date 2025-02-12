@@ -30,12 +30,18 @@ if __name__ == '__main__':
     data = import_NordLink_data(path)
 
     # Check if the necessary columns exist
-    if 'Timestamp' not in data.columns or 'Frequency: FI' not in data.columns:
+    required_columns = ['Timestamp', 'Frequency: FI', 'Frequency: NO1', 'Frequency: NO2', 'Frequency: NO3']
+    if not all(col in data.columns for col in required_columns):
         print("Error: Required columns are missing from the data.")
     else:
-
+        data['mean_freq'] = data[['Frequency: FI', 'Frequency: NO1', 'Frequency: NO2', 'Frequency: NO3']].mean(axis=1)
         plt.figure()
-        plt.plot(data['Seconds'], data['Frequency: FI'], label='NordLink')
+        plt.plot(data['Seconds'], data['Frequency: FI'], label='FI')
+        plt.plot(data['Seconds'], data['Frequency: NO1'], label='NO1')
+        plt.plot(data['Seconds'], data['Frequency: NO2'], label='NO2')
+        plt.plot(data['Seconds'], data['Frequency: NO3'], label='NO3')
+        plt.plot(data['Seconds'], data['mean_freq'], label='Average frequency')
+        plt.title('NordLink Fault Frequency Data')
         plt.xlabel('Seconds')
         plt.ylabel('Frequency [Hz]')
         plt.legend()
