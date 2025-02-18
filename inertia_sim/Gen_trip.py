@@ -5,5 +5,5 @@ if __name__ == '__main__':
     import tops.ps_models.n45_with_controls_HVDC as n45
     ps = func.init_n45_with_VSC(model_data=n45,display_pf=False)
     # func.run_sensitivity(ps,'r',[3.5,3,2.5,2,1.5],foldername = 'r_sensitivity/')
-    func.gen_trip(ps=ps,folderandfilename = 'TGOV_tuning/T_3=10', t_end=50, t_trip=17.6)
+    func.gen_trip(ps=ps,folderandfilename = 'TGOV_tuning/T_3=10')
     
