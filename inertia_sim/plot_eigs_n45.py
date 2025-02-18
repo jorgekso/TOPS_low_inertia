@@ -9,7 +9,16 @@ import init_N45 as n45_functions
 import tops.ps_models.n45_with_controls_HVDC as model_data
 if __name__ == '__main__':
 
-    ps = n45_functions.init_n45(model_data = model_data,fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3)
+    ps = n45_functions.init_n45_with_VSC(model_data = model_data,fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,display_pf=False)
+    # index = ps.model['pss']['STAB1'][0].index('K')
+    # #updating the model as well as the powersystem
+    # for row in ps.model['pss']['STAB1']:
+    #     #Skip the first row
+    #     if row[0] == 'name':
+    #         continue
+    #     else:
+    #         row[index] = 10
+    # ps = dps.PowerSystemModel(model=ps.model)
     ps.init_dyn_sim()
 
     # Perform system linearization
