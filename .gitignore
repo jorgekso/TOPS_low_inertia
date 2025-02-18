@@ -163,4 +163,5 @@ cython_debug/
 #Adding the Results folder to the gitignore to avoid pushing the results to the repository
 Results/
 #Adding the config file to the gitignore to avoid pushing the config file to the repository
-.config.py
+inertia_sim/config.py
+
