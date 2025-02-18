@@ -13,6 +13,8 @@ import tops.utility_functions_eirik as MThesis
 import tops.ps_models.n45_with_controls_HVDC as model_data
 importlib.reload(dps)
 import pandas as pd
+import pandas as pd
+
 
 
 def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
@@ -32,9 +34,10 @@ def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P 
         The kinetic energy of the EPS.
 
     """
-
+    #data_path = 'inertia_sim/N45_case_data/'
+    data_path = 'inertia_sim/N45_case_data_NordLink/'
     #Accessing the case data and saving it in Dataframe format
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
                            'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
@@ -227,6 +230,9 @@ def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P 
 
     if display_pf:
         display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
+
+    if display_pf:
+        display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
     return ps
 
 def init_VSC(ps):
@@ -243,24 +249,34 @@ def init_VSC(ps):
     
     vsc_power_exchange = {'NO_2-DE': 0.0, 'NO_2-GB': 0.0, 'SE_4-LT': 0, 'FI-EE': 0.0} #Power exchange with VSC-HVDC
 
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
+    path = 'inertia_sim/N45_case_data_NordLink/'
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(path)
 
-    # for link, load in ENTSOE_exchange_data.iterrows():
-    #     if link in vsc_power_exchange.keys():
-    #         vsc_power_exchange[link] = load['Power transfer']
+    for link, load in ENTSOE_exchange_data.iterrows():
+        if link in vsc_power_exchange.keys():
+            vsc_power_exchange[link] = load['Power transfer']
 
+    for row in ps.model['vsc']['VSC_SI']:
+        if row[0] == 'name':
+            continue
+        else:
+            link = row[0]
+            if link in vsc_power_exchange.keys():
+                row[2] = -vsc_power_exchange[link]/ps.vsc['VSC_SI'].par['S_n']
 
-
+    ps2 = dps.PowerSystemModel(model=ps.model)
+    return ps2
     # for name in ps.loads['Load'].par['name']:
     #     if name in vsc_international_links.keys():
     #         ps.loads['Load'].y_load = 0 #Disconnecting the load
             
         
-    for name, load in vsc_power_exchange.items():
-        for index in range(len(ps.vsc['VSC_SI'].par['name'])):
-            if name == ps.vsc['VSC_SI'].par['name'][index]:
-                power = -load/ps.vsc['VSC_SI'].par['S_n']
-                ps.vsc['VSC_SI'].set_input('p_ref', power)
+    # for name, load in vsc_power_exchange.items():
+    #     for index in range(len(ps.vsc['VSC_SI'].par['name'])):
+    #         if name == ps.vsc['VSC_SI'].par['name'][index]:
+    #             power = -load/ps.vsc['VSC_SI'].par['S_n']
+    #             ps.vsc['VSC_SI'].set_input('p_ref', power)
+    
             
 
 def gen_trip(ps, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
@@ -459,12 +475,14 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
         area = name.split('-')[0]
     
         if area in export.keys():
-            if power < 0:
-                export[area] -= power * s_b
-            else:
-                export[area] += power * s_b
+  
+            export[area] += power * s_b
+           
 
     
+
+
+
     print(pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}))
     print(pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}))
     print(pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}))
@@ -508,7 +526,7 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
     #     print('Excel writing complete')
 
 
-def init_n45_with_VSC(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+def init_n45_with_VSC(model_data, display_pf, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
 
@@ -525,9 +543,11 @@ def init_n45_with_VSC(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400
         The kinetic energy of the EPS.
 
     """
+    #data_path = 'inertia_sim/N45_case_data/'
+    data_path = 'inertia_sim/N45_case_data_NordLink/'
 
     #Accessing the case data and saving it in Dataframe format
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
                            'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
@@ -718,8 +738,8 @@ def init_n45_with_VSC(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
 
-    init_VSC(ps)
+    ps2 = init_VSC(ps)
 
     if display_pf:
         display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
-    return ps
+    return ps2

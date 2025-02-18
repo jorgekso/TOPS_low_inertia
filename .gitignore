@@ -164,3 +164,4 @@ cython_debug/
 Results/
 #Adding the config file to the gitignore to avoid pushing the config file to the repository
 inertia_sim/config.py
+

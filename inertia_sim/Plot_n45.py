@@ -3,30 +3,35 @@ import sys
 from config import system_path
 sys.path.append(system_path)
 import utility_functions_NJ as uf
+from plot_NordLink_data import import_NordLink_data
 
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
 if __name__ == '__main__':  
+    
+    plt.rcParams.update({
 
+        "font.family": "Dejavu serif",
+
+        "font.serif": ["Computer Modern Roman"],
+        "font.size": 12,           # Default font size
+        "axes.titlesize": 14,      # Font size for axes titles
+        "axes.labelsize": 14,      # Font size for x and y labels
+        "xtick.labelsize": 12,     # Font size for x tick labels
+        "ytick.labelsize": 12,     # Font size for y tick labels
+        "legend.fontsize": 12,     # Font size for legend
+        "figure.titlesize": 16     # Font size for figure title
+    })
+
+    
 
   
+ 
 
 
-    # plt.rcParams.update({
-    #     "font.family": "serif",
-    #     "font.serif": ["Computer Modern Roman"],
-    #     "font.size": 12,           # Default font size
-    #     "axes.titlesize": 14,      # Font size for axes titles
-    #     "axes.labelsize": 14,      # Font size for x and y labels
-    #     "xtick.labelsize": 12,     # Font size for x tick labels
-    #     "ytick.labelsize": 12,     # Font size for y tick labels
-    #     "legend.fontsize": 12,     # Font size for legend
-    #     "figure.titlesize": 16     # Font size for figure title
-    # })
+    folder_path = '/Users/noralillelien/Documents/TOPS_low_inertia/Results/NordLink/'
 
-    folder_path = '/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/Results/TGOV_tuning/'
-    #folder_path2 = '/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/Results/r_sensitivity/'
     results,file_names = uf.format_results(folder_path)
     uf.plot_freq(results, file_names)
     # results,file_names = uf.format_results(folder_path2)
