@@ -3,6 +3,7 @@ import sys
 from config import system_path
 sys.path.append(system_path)
 import utility_functions_NJ as uf
+from plot_NordLink_data import import_NordLink_data
 
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
@@ -23,7 +24,7 @@ if __name__ == '__main__':
         "figure.titlesize": 16     # Font size for figure title
     })
 
-
+    
 
   
  

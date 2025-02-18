@@ -475,10 +475,9 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
         area = name.split('-')[0]
     
         if area in export.keys():
-            if power < 0:
-                export[area] -= power * s_b
-            else:
-                export[area] += power * s_b
+  
+            export[area] += power * s_b
+           
 
     
 
