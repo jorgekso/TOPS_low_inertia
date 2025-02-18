@@ -34,9 +34,10 @@ def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P 
         The kinetic energy of the EPS.
 
     """
-
+    #data_path = 'inertia_sim/N45_case_data/'
+    data_path = 'inertia_sim/N45_case_data_NordLink/'
     #Accessing the case data and saving it in Dataframe format
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
                            'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
@@ -498,7 +499,7 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
     #     print('Excel writing complete')
 
 
-def init_n45_with_VSC(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+def init_n45_with_VSC(model_data, display_pf, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
 
@@ -515,9 +516,11 @@ def init_n45_with_VSC(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400
         The kinetic energy of the EPS.
 
     """
+    #data_path = 'inertia_sim/N45_case_data/'
+    data_path = 'inertia_sim/N45_case_data_NordLink/'
 
     #Accessing the case data and saving it in Dataframe format
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
                            'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
