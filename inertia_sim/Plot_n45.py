@@ -25,10 +25,12 @@ if __name__ == '__main__':
     #     "figure.titlesize": 16     # Font size for figure title
     # })
 
-    folder_path = '/Users/noralillelien/Documents/TOPS_low_inertia/Results/pf_tests/'
-
+    folder_path = '/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/Results/TGOV_tuning/'
+    #folder_path2 = '/Users/joerg/Documents/NTNU/Master/TOPS_low_inertia/Results/r_sensitivity/'
     results,file_names = uf.format_results(folder_path)
     uf.plot_freq(results, file_names)
+    # results,file_names = uf.format_results(folder_path2)
+    # uf.plot_freq(results, file_names)
     #uf.plot_gen(results, file_names)
     #uf.plot_gen_speed(results, file_names,'G3000-1')
   
@@ -39,4 +41,3 @@ if __name__ == '__main__':
     # uf.plot_power_VSC(results, file_names, 'SE_4-LT' )
 
     plt.show()
-
