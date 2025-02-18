@@ -33,6 +33,8 @@ if __name__ == '__main__':
 
     results,file_names = uf.format_results(folder_path)
     uf.plot_freq(results, file_names)
+    # results,file_names = uf.format_results(folder_path2)
+    # uf.plot_freq(results, file_names)
     #uf.plot_gen(results, file_names)
     #uf.plot_gen_speed(results, file_names,'G3000-1')
   
@@ -43,4 +45,3 @@ if __name__ == '__main__':
     # uf.plot_power_VSC(results, file_names, 'SE_4-LT' )
 
     plt.show()
-

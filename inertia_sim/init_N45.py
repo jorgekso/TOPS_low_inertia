@@ -251,15 +251,15 @@ def init_VSC(ps):
 
     ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
 
-    for link, load in ENTSOE_exchange_data.iterrows():
-        if link in vsc_power_exchange.keys():
-            vsc_power_exchange[link] = load['Power transfer']
+    # for link, load in ENTSOE_exchange_data.iterrows():
+    #     if link in vsc_power_exchange.keys():
+    #         vsc_power_exchange[link] = load['Power transfer']
 
 
 
-    for name in ps.loads['Load'].par['name']:
-        if name in vsc_international_links.keys():
-            ps.loads['Load'].y_load = 0 #Disconnecting the load
+    # for name in ps.loads['Load'].par['name']:
+    #     if name in vsc_international_links.keys():
+    #         ps.loads['Load'].y_load = 0 #Disconnecting the load
             
         
     for name, load in vsc_power_exchange.items():
@@ -269,7 +269,7 @@ def init_VSC(ps):
                 ps.vsc['VSC_SI'].set_input('p_ref', power)
             
 
-def gen_trip(model_data, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
+def gen_trip(ps, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
     """
     Simulates a generator trip in the Nordic 45 system.
     Parameters:
@@ -296,7 +296,7 @@ def gen_trip(model_data, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinet
     VSC : bool
         If True, the VSC is included in the simulation.
     """
-    ps = init_n45(model_data, fault_bus, fault_Sn, fault_P, kinetic_energy_eps)
+    
     ps.power_flow()
     ps.init_dyn_sim()
     x0 = ps.x0.copy()
@@ -315,6 +315,8 @@ def gen_trip(model_data, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinet
     res = defaultdict(list)
     t_0 = time.time()
 
+        
+    
     while t < t_end:
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
 
@@ -352,6 +354,22 @@ def gen_trip(model_data, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinet
     res['bus_names'].append(ps.buses['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
+
+def run_sensitivity(powersystem, sens_par=str, sens_vars=list,foldername = str):
+    for sens_var in sens_vars:
+        powersystem.gov['HYGOV'].par[sens_par] = sens_var  # Sensitivity analysis
+        #how to get the index of the parameter in the model
+        index = powersystem.model['gov']['HYGOV'][0].index(sens_par)
+        #updating the model as well as the powersystem
+        for row in powersystem.model['gov']['HYGOV']:
+            #Skip the first row
+            if row[0] == 'name':
+                continue
+            else:
+                row[index] = sens_var
+        ps2 = dps.PowerSystemModel(model=powersystem.model)
+        gen_trip(ps=ps2, folderandfilename=foldername+str(sens_par)+'_'+str(sens_var), t_end=50, t_trip=17.6, event_flag=True)
+
 
 
 def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country):
