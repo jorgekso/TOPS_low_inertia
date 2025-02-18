@@ -29,7 +29,7 @@ if __name__ == '__main__':
  
 
 
-    folder_path = '/Users/noralillelien/Documents/TOPS_low_inertia/Results/pf_tests/'
+    folder_path = '/Users/noralillelien/Documents/TOPS_low_inertia/Results/NordLink/'
 
     results,file_names = uf.format_results(folder_path)
     uf.plot_freq(results, file_names)
