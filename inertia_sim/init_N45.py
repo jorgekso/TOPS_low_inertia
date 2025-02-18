@@ -249,24 +249,34 @@ def init_VSC(ps):
     
     vsc_power_exchange = {'NO_2-DE': 0.0, 'NO_2-GB': 0.0, 'SE_4-LT': 0, 'FI-EE': 0.0} #Power exchange with VSC-HVDC
 
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE('inertia_sim/N45_case_data/')
+    path = 'inertia_sim/N45_case_data_NordLink/'
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(path)
 
-    # for link, load in ENTSOE_exchange_data.iterrows():
-    #     if link in vsc_power_exchange.keys():
-    #         vsc_power_exchange[link] = load['Power transfer']
+    for link, load in ENTSOE_exchange_data.iterrows():
+        if link in vsc_power_exchange.keys():
+            vsc_power_exchange[link] = load['Power transfer']
 
+    for row in ps.model['vsc']['VSC_SI']:
+        if row[0] == 'name':
+            continue
+        else:
+            link = row[0]
+            if link in vsc_power_exchange.keys():
+                row[2] = -vsc_power_exchange[link]/ps.vsc['VSC_SI'].par['S_n']
 
-
+    ps2 = dps.PowerSystemModel(model=ps.model)
+    return ps2
     # for name in ps.loads['Load'].par['name']:
     #     if name in vsc_international_links.keys():
     #         ps.loads['Load'].y_load = 0 #Disconnecting the load
             
         
-    for name, load in vsc_power_exchange.items():
-        for index in range(len(ps.vsc['VSC_SI'].par['name'])):
-            if name == ps.vsc['VSC_SI'].par['name'][index]:
-                power = -load/ps.vsc['VSC_SI'].par['S_n']
-                ps.vsc['VSC_SI'].set_input('p_ref', power)
+    # for name, load in vsc_power_exchange.items():
+    #     for index in range(len(ps.vsc['VSC_SI'].par['name'])):
+    #         if name == ps.vsc['VSC_SI'].par['name'][index]:
+    #             power = -load/ps.vsc['VSC_SI'].par['S_n']
+    #             ps.vsc['VSC_SI'].set_input('p_ref', power)
+    
             
 
 def gen_trip(ps, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
@@ -729,8 +739,8 @@ def init_n45_with_VSC(model_data, display_pf, fault_bus = '7000',fault_Sn = 1400
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
 
-    init_VSC(ps)
+    ps2 = init_VSC(ps)
 
     if display_pf:
         display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
-    return ps
+    return ps2
