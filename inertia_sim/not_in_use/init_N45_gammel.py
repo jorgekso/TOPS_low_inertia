@@ -1,30 +1,23 @@
 import sys
 from collections import defaultdict
 import time
-
 from config import system_path
 sys.path.append(system_path)  # Corrected path to dyn_sim module
-
 import tops.dynamic as dps
 import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
-
-
+import numpy as np 
 import utility_functions_NJ as uf
 import tops.utility_functions_eirik as MThesis
-
-
-import pandas as pd
-import numpy as np 
-
-# Power system model 
 import tops.ps_models.n45_with_controls_HVDC as model_data
+importlib.reload(dps)
+import pandas as pd
+import pandas as pd
 
 
 
-def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
-
+def init_n45(model_data, display_pf, fault_bus = '3359',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
 
@@ -41,10 +34,10 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
         The kinetic energy of the EPS.
 
     """
-
-
+    #data_path = 'inertia_sim/N45_case_data/'
+    data_path = 'inertia_sim/N45_case_data_NordLink/'
     #Accessing the case data and saving it in Dataframe format
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = uf.import_powerflow_data(data_path)
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
                            'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
@@ -226,9 +219,6 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     index_droop = model['gov']['HYGOV'][0].index('R')
     Freq_bias = MThesis.calc_frequency_bias(model)
 
-    if VSC_HVDC:
-        init_VSC(model, ENTSOE_exchange_data)
-
     #Freeing up memory. These are not needed anymore
     del index_P, index_Sn 
     del index_area, from_count, cot_phi, load_name, index_Q, index_H, added
@@ -241,36 +231,55 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     if display_pf:
         display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
 
+    if display_pf:
+        display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
     return ps
 
-def init_VSC(model, exchange_data):
+def init_VSC(ps):
+    """
+    Initializes the VSC-HVDC transmission in the Nordic 45 system from N45_case_data folder.
+
+    Parameters:
+    ps : PowerSystemModel
+        The power system model.
+    """
+
+    
     vsc_international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB','L8700-2': 'SE_4-LT', 'L7020-1': 'FI-EE'} #Load names of international links with VSC-HVDC
     
     vsc_power_exchange = {'NO_2-DE': 0.0, 'NO_2-GB': 0.0, 'SE_4-LT': 0, 'FI-EE': 0.0} #Power exchange with VSC-HVDC
 
-    for link, load in exchange_data.iterrows():
+    path = 'inertia_sim/N45_case_data_NordLink/'
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(path)
+
+    for link, load in ENTSOE_exchange_data.iterrows():
         if link in vsc_power_exchange.keys():
             vsc_power_exchange[link] = load['Power transfer']
+
+    for row in ps.model['vsc']['VSC_SI']:
+        if row[0] == 'name':
+            continue
+        else:
+            link = row[0]
+            if link in vsc_power_exchange.keys():
+                row[2] = -vsc_power_exchange[link]/ps.vsc['VSC_SI'].par['S_n']
+
+    ps2 = dps.PowerSystemModel(model=ps.model)
+    return ps2
+    # for name in ps.loads['Load'].par['name']:
+    #     if name in vsc_international_links.keys():
+    #         ps.loads['Load'].y_load = 0 #Disconnecting the load
+            
+        
+    # for name, load in vsc_power_exchange.items():
+    #     for index in range(len(ps.vsc['VSC_SI'].par['name'])):
+    #         if name == ps.vsc['VSC_SI'].par['name'][index]:
+    #             power = -load/ps.vsc['VSC_SI'].par['S_n']
+    #             ps.vsc['VSC_SI'].set_input('p_ref', power)
     
-    for row in model['loads'][1:]:
-        name = row[0]
+            
 
-        # Removing loads that corresponds to VSC HVDC transmission 
-        if name in vsc_international_links.keys(): 
-
-            row[2] = 0 #setting P = 0
-            row[3] = 0 #setting Q = 0
-    
-    for row in model['vsc']['VSC_SI'][1:]:
-        link_name= row[0]
-      
-        if link_name in vsc_power_exchange.keys():
-            s_b = row[2]
-            row[3] = -vsc_power_exchange[link_name]/s_b
-
-
-def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,
-             t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
+def gen_trip(ps, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3, folderandfilename = 'Base/300MWs',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False):
     """
     Simulates a generator trip in the Nordic 45 system.
     Parameters:
@@ -295,7 +304,7 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
     event_flag : bool
         If True, the generator trip event is triggered.
     VSC : bool
-        If True, the VSC results are included in the simulation.
+        If True, the VSC is included in the simulation.
     """
     
     ps.power_flow()
@@ -356,7 +365,20 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
-
+def run_sensitivity(powersystem, sens_par=str, sens_vars=list,foldername = str):
+    for sens_var in sens_vars:
+        powersystem.gov['HYGOV'].par[sens_par] = sens_var  # Sensitivity analysis
+        #how to get the index of the parameter in the model
+        index = powersystem.model['gov']['HYGOV'][0].index(sens_par)
+        #updating the model as well as the powersystem
+        for row in powersystem.model['gov']['HYGOV']:
+            #Skip the first row
+            if row[0] == 'name':
+                continue
+            else:
+                row[index] = sens_var
+        ps2 = dps.PowerSystemModel(model=powersystem.model)
+        gen_trip(ps=ps2, folderandfilename=foldername+str(sens_par)+'_'+str(sens_var), t_end=50, t_trip=17.6, event_flag=True)
 
 
 
@@ -481,3 +503,243 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
     print('FI-SE_3',ps.loads['Load'].par['name'][-12], ps.loads['Load'].p(x0, v0).copy()[-12]*s_base)
     print('SE_3-FI',ps.loads['Load'].par['name'][3], ps.loads['Load'].p(x0, v0).copy()[3]*s_base)
     print(sum(ps.gen['GEN'].par['S_n']))
+
+    path = '/Users/noralillelien/Documents/TOPS_low_inertia/'
+
+    #Open the Excel file in append mode using openpyxl engine. To save for printing initial power flow
+    # with pd.ExcelWriter(path + 'dataframes_DynPSSimPy.xlsx',
+    #                     engine='openpyxl') as writer:
+
+    #     # Save the new DataFrame to the existing sheet (if it doesn't exist, it will create a new sheet)
+    #     pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_Gen', index=True)
+
+    #     pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_Con', index=True)
+
+    #     pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_trans', index=True)
+
+    #     pd.DataFrame({'Link': list(export.keys()), 'exchange': list(export.values())}) \
+    #         .to_excel(writer, sheet_name='DynPSS_export', index=True)
+
+    #     print('Excel writing complete')
+
+
+def init_n45_with_VSC(model_data, display_pf, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+    """
+    Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
+
+    Parameters:
+    model_data : dictionary
+        Dictionary containing the model data.
+    fault_bus : string
+        The bus number of the fault.
+    fault_Sn : float
+        The nominal power of the fault.
+    fault_P : float 
+        The active power of the fault.
+    kinetic_energy_eps : float
+        The kinetic energy of the EPS.
+
+    """
+    #data_path = 'inertia_sim/N45_case_data/'
+    data_path = 'inertia_sim/N45_case_data_NordLink/'
+
+    #Accessing the case data and saving it in Dataframe format
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
+    # List of international power links: Should be updated if added links or using another model than N45
+    international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
+                           'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
+                           'L8600-2': 'SE_4-DE', 'L8700-2': 'SE_4-LT', 'L7020-1': 'FI-EE',
+                           'L3020-1': 'SE_3-FI', 'L7010-1': 'FI-SE_3', 'L5220-1': 'NO_2-NL',
+                           'L7020-2': 'FI-RU'}
+    #Initializing the model from the load data in n45_with_controls
+    model = model_data.load()
+
+    # ------------------------------ Reparameterization to fit specific time-senario -----------------------------------
+    index_area = model['buses'][0].index('Area')
+    area_mapping = {24: 'SE_4', 23: 'SE_3', 22: 'SE_2', 21: 'SE_1', 11: 'NO_1', 12: 'NO_2', 13: 'NO_3',
+        14: 'NO_4', 15: 'NO_5', 31: 'FI'} #integers from original N45, strings from Transparency platform
+    #Change from numbers to strings from area_mapping to have consistent area names
+    for bus in model['buses'][1:]:
+        area = bus[index_area]
+        if area in area_mapping:
+            bus[index_area] = area_mapping[area]
+        else:
+            print(f"ERROR: Unknown price area {area}")
+
+    
+    # Making dictionary to map bus to area
+    area_by_bus = {} #From bus find area
+    bus_by_area = {} #From area find buses
+    index_bus_name = model['buses'][0].index('name')
+    index_area = model['buses'][0].index('Area')
+    for bus in model['buses'][1:]:
+        area = bus[index_area]
+        area_by_bus[bus[index_bus_name]] = area
+        if area not in bus_by_area:
+            bus_by_area[area] = [bus[index_bus_name]]
+        else:
+            bus_by_area[area].append(bus[index_bus_name])
+    fault_area = area_by_bus.get(fault_bus)
+
+
+
+    #------------------------------Updating the Power generation in the n45_with_controls model-----------------------------------
+    #To retrieve total specified power generation in an area
+    # Initialize a list to store specified power generation by area code
+    PowerGen_by_area = {}
+    # Iterate through the 'GEN' data and extract 'bus' and 'P' columns
+    index_bus_name = model['generators']['GEN'][0].index('bus')
+    index_gen = model['generators']['GEN'][0].index('name')
+    index_P = model['generators']['GEN'][0].index('P')
+
+
+    all_gen = set()
+    for row in model['generators']['GEN'][1:]:
+        bus_name = row[index_bus_name]
+        gen_name = row[index_gen]
+        P_specified = row[index_P]
+        area = area_by_bus.get(bus_name)
+        if area not in PowerGen_by_area:
+            PowerGen_by_area[area] = 0
+        PowerGen_by_area[area] = PowerGen_by_area[area] + P_specified
+        all_gen.add(gen_name)
+
+
+    #------------------------------Updating the Power consumption in the n45_with_controls model-----------------------------------
+    PowerCon_by_area = {}
+    PowerExc_by_country = {} #Used for scaling when mulitple export/import power links between countries
+    index_name = model['loads'][0].index('name')
+    index_bus_name = model['loads'][0].index('bus')
+    index_P = model['loads'][0].index('P')
+    load_sum = 0.0
+    added = set() #To not count interconnectors multiple times
+    for row in model['loads'][1:]:
+        bus_name = row[index_bus_name]
+        load_name = row[index_name]
+        P_specified = row[index_P]
+        area = area_by_bus.get(bus_name)
+        load_sum += P_specified
+        if load_name not in international_links.keys(): #If load inside model
+            if area not in PowerCon_by_area:
+                PowerCon_by_area[area] = 0.0
+            PowerCon_by_area[area] = PowerCon_by_area[area] + P_specified
+
+        elif load_name in international_links.keys(): #if import/export cable
+            transfer_code = international_links[load_name]
+            from_count = transfer_code[:2]
+            to_count = transfer_code[-2:]
+            for other_load_name, other_transfer in international_links.items():
+                other_from_count = other_transfer[:2]
+                other_to_count = other_transfer[-2:]
+                if from_count == other_from_count and to_count == other_to_count \
+                        and transfer_code != other_transfer and transfer_code not in added:
+                    if from_count not in PowerExc_by_country:
+                        PowerExc_by_country[from_count] = 0.0
+                    PowerExc_by_country[from_count] = PowerExc_by_country[from_count] + P_specified
+                    added.add(transfer_code)
+                elif from_count == other_to_count and to_count == other_from_count \
+                        and transfer_code != other_transfer and transfer_code not in added:
+                    if from_count not in PowerExc_by_country:
+                        PowerExc_by_country[from_count] = 0.0
+                    PowerExc_by_country[from_count] = PowerExc_by_country[from_count] - P_specified
+                    added.add(transfer_code)
+
+
+    
+    # ------------------------------Updating generators' specified powers----------------------------------------------
+    index_bus_name = model['generators']['GEN'][0].index('bus')
+    index_gen = model['generators']['GEN'][0].index('name')
+    index_P = model['generators']['GEN'][0].index('P')
+    index_Sn = model['generators']['GEN'][0].index('S_n')
+    for row in model['generators']['GEN'][1:]:
+        bus_name = row[index_bus_name]
+        P_specified = row[index_P]
+        area = area_by_bus.get(bus_name)
+        gen_name = row[index_gen]
+        row[index_P] = (P_specified * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area))
+        row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
+
+
+
+    # ------------------------------Updating loads' active and reactive power consumptions------------------------------
+    index_name = model['loads'][0].index('name')
+    index_bus_name = model['loads'][0].index('bus')
+    index_P = model['loads'][0].index('P')
+    index_Q = model['loads'][0].index('Q')
+
+    for row in model['loads'][1:]:
+        bus_name = row[index_bus_name]
+        load_name = row[index_name]
+        area = area_by_bus.get(bus_name)
+        cot_phi = row[index_Q] / row[index_P] if not -1 < row[index_P] < 1 else 0
+        if row[index_name] in international_links.keys(): #if international link
+            area_transfer = international_links.get(load_name)
+            split = area_transfer.split('-')
+            if area_transfer in ENTSOE_exchange_data['Power transfer'].keys(): #Only one link out of country
+                P_new = ENTSOE_exchange_data['Power transfer'].loc[area_transfer]
+                row[index_P] = P_new if P_new != 0 else 0.01
+                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]
+            elif split[1]+'-'+split[0] in ENTSOE_exchange_data['Power transfer'].keys():
+                #reversed_transfer = split[1]+'-'+split[0]
+                P_new = - ENTSOE_exchange_data['Power transfer'].loc[split[1]+'-'+split[0]]
+                row[index_P] = P_new if P_new != 0 else 0.01
+                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]
+            else: #elif area_transfer not in ENTSOE_exchange_data['Power transfer'].keys(): #Might be multiple links out of country, need for disaggregation
+                #export/import data is not retrieved
+                P_new = row[index_P]
+                row[index_P] = P_new if P_new != 0 else 0.01
+                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]
+                '''area_transfer = area_transfer[:2] + '-' + area_transfer[-2:]
+                P_new = (ENTSOE_exchange_data['Power transfer'].loc[area_transfer]/
+                         PowerExc_by_country.get(area[:2])*row[index_P])
+                row[index_P] = P_new if P_new != 0 else 0.01
+                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]'''
+
+        else: #national loads
+            P_new = row[index_P] * ENTSOE_load_data['Power consumption'].loc[area] / PowerCon_by_area.get(area)
+            row[index_P] = P_new
+            row[index_Q] = P_new * cot_phi
+
+
+    #Adds a virtual line with generator to be disconnected
+    MThesis.add_virtual_line(model, fault_bus)
+    add_virtual_gen = MThesis.add_virtual_gen(model, fault_bus, fault_P, fault_Sn)
+    # ------------------------------Updating the inertia of the system based on the kinetic energy of the EPS-----------------------------------
+    area_by_bus['Virtual bus'] = model['buses'][-1][index_area] #adding to mapping
+    index_H = model['generators']['GEN'][0].index('H')
+    S_EPS = 0 #Nominal power of EPS
+    H_EPS = 0 #Inertia time constant of EPS
+    Ek_EPS = 0 #Kinetic energy of EPS
+    # updating S_n
+    for row in model['generators']['GEN'][1:]:
+        #row[index_H] * = 1
+        S_EPS += row[index_Sn]
+        Ek_EPS += row[index_Sn] * row[index_H]
+    H_EPS = Ek_EPS/S_EPS #Intertia time constant
+    scaling = kinetic_energy_eps/Ek_EPS
+
+    # updating S_n and scaling inertia
+    for row in model['generators']['GEN'][1:]:
+        row[index_H] *= scaling  # Apply the scaling factor to the inertia constant
+
+    #Frequency bias:
+    index_droop = model['gov']['HYGOV'][0].index('R')
+    Freq_bias = MThesis.calc_frequency_bias(model)
+
+    #Freeing up memory. These are not needed anymore
+    del index_P, index_Sn 
+    del index_area, from_count, cot_phi, load_name, index_Q, index_H, added
+    del other_from_count, other_load_name, other_to_count, other_transfer, area_transfer
+    del to_count, transfer_code, fault_Sn, fault_P, P_new, P_specified
+
+    ps = dps.PowerSystemModel(model=model)
+    ps.use_numba = True
+
+    ps2 = init_VSC(ps)
+
+    if display_pf:
+        display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country)
+    return ps2

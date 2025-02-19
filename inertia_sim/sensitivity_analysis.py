@@ -2,6 +2,7 @@ import tops.dynamic as dps
 import tops.solvers as dps_sol
 import importlib
 importlib.reload(dps)
+from init_N45 import gen_trip
 
 def run_sensitivity(powersystem, sens_par=str, sens_vars=list,foldername = str):
     for sens_var in sens_vars:

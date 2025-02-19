@@ -1,8 +1,6 @@
 import tops.ps_models.n45_with_controls as model_data
 
-from init45_v2 import init_n45
-
-import init_N45 as func
+from init_N45 import init_n45
 
 if __name__ == '__main__':
     #This code is used to generate a trip of a 1400MW generator in the 3359 bus of the Nordic 45 system.
