@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from pathlib import Path
 import json
+import pandas as pd 
 import os
 
 
@@ -95,6 +96,28 @@ def plot_gen(results, file_names, gen_name=None):
     plt.ylabel('Speed [p.u.]')
     plt.grid()
     plt.legend()
+
+
+def import_powerflow_data(path):
+    """
+    Retrievies data from .xlsx files
+
+    Parameter:
+    path : string
+        String to folder path 
+    """
+  
+    # Reading the aggregated generation data from excel file
+    ENTSOE_gen_data = pd.read_excel(
+        path + 'dataframes_transparency.xlsx', sheet_name='Aggr_generation', index_col=0)
+    # Reading the aggregated load data from excel file
+    ENTSOE_load_data = pd.read_excel(
+        path + 'dataframes_transparency.xlsx', sheet_name='Aggr_load', index_col=0)
+
+    # Reading the aggregated exchange data from excel file (power links)
+    ENTSOE_exchange_data = pd.read_excel(
+        path + 'powerflow_Statnett.xlsx', sheet_name='aggr_exchange', index_col=0)
+    return ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data
 
 
 
