@@ -3,7 +3,8 @@ if __name__ == '__main__':
     import init_N45 as func
     #iterates over the different kinetic energy scenarios
     import tops.ps_models.n45_with_controls_HVDC as n45
-    ps = func.init_n45(model_data=n45,display_pf=True)
+    ps = func.init_n45(model_data=n45,display_pf=False)
     # func.run_sensitivity(ps,'r',[3.5,3,2.5,2,1.5],foldername = 'r_sensitivity/')
-    func.gen_trip(ps=ps,folderandfilename = 'TGOV_tuning/T_3=10')
+    func.gen_trip(ps=ps,folderandfilename = 'EnergyMix/WithEnergyMix_Nordlink',event_flag=False,
+                  fault_bus='7000',VSC=True)
     
