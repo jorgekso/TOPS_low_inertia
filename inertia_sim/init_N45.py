@@ -42,9 +42,35 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
 
     """
 
+    #Kladd for energimix fordeling
+    #Energy mix for different areas
+    energy_mix = {'FI': {'Wind': 0.0, 'Hydro': 0.18, 'Nuclear': 0.82, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_1': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_2': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_3': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_4': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_1': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_2': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_3': {'Wind': 0.0, 'Hydro': 0.46, 'Nuclear': 0.54, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_4': {'Wind': 0.0, 'Hydro': 0.0, 'Nuclear': 1, 'Solar': 0.0, 'Fossil': 0.0}}
+    # energy_mix = {'FI': {'Wind': 0.8, 'Hydro': 0.0, 'Nuclear': 0.2, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_1': {'Wind': 0.0, 'Hydro': 0.95, 'Nuclear': 0.0, 'Solar': 0.05, 'Fossil': 0.0},
+    #             'NO_2': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_3': {'Wind': 0.4, 'Hydro': 0.6, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_4': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'SE_1': {'Wind': 0.9, 'Hydro': 0.1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'SE_2': {'Wind': 0.9, 'Hydro': 0.1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'SE_3': {'Wind': 0.5, 'Hydro': 0.0, 'Nuclear': 0.4, 'Solar': 0.1, 'Fossil': 0.0},
+    #             'SE_4': {'Wind': 0.9, 'Hydro': 0.1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0}}
 
+
+
+    #data_path = 'inertia_sim/N45_case_data/'
+    data_path = 'inertia_sim/N45_case_data_Nordlink/'
     #Accessing the case data and saving it in Dataframe format
-    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = uf.import_powerflow_data(data_path)
+    ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
     international_links = {'L5230-1': 'NO_2-DE', 'L5240-2': 'NO_2-GB', 'L5210-1': 'NO_2-DK',
                            'L3360-1': 'SE_3-DK', 'L8600-1': 'SE_4-DK', 'L8700-1': 'SE_4-PL',
@@ -145,19 +171,67 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
                     added.add(transfer_code)
 
 
-    
     # ------------------------------Updating generators' specified powers----------------------------------------------
     index_bus_name = model['generators']['GEN'][0].index('bus')
     index_gen = model['generators']['GEN'][0].index('name')
     index_P = model['generators']['GEN'][0].index('P')
     index_Sn = model['generators']['GEN'][0].index('S_n')
+    
+    #Mapping the generators by their means of production
+    hydro_gen = []
+    for row in model['gov']['HYGOV']:
+        if row[0] == 'name':
+            continue
+        else:
+            hydro_gen.append(row[1])
+    hydro_gen_by_area = {}
     for row in model['generators']['GEN'][1:]:
         bus_name = row[index_bus_name]
         P_specified = row[index_P]
         area = area_by_bus.get(bus_name)
         gen_name = row[index_gen]
-        row[index_P] = (P_specified * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area))
-        row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
+        if gen_name in hydro_gen:
+            if area not in hydro_gen_by_area:
+                hydro_gen_by_area[area] = []
+            hydro_gen_by_area[area].append(gen_name)
+    nuclear_gen = []
+    for row in model['gov']['TGOV1']:
+        if row[0] == 'name':
+            continue
+        else:
+            nuclear_gen.append(row[1])
+    nuclear_gen_by_area = {}
+    for row in model['generators']['GEN'][1:]:
+        bus_name = row[index_bus_name]
+        P_specified = row[index_P]
+        area = area_by_bus.get(bus_name)
+        gen_name = row[index_gen]
+        if gen_name in nuclear_gen:
+            if area not in nuclear_gen_by_area:
+                nuclear_gen_by_area[area] = []
+            nuclear_gen_by_area[area].append(gen_name)
+   
+   
+   
+    #Updating the specified power generation for each generation type
+
+    for row in model['generators']['GEN'][1:]:
+        bus_name = row[index_bus_name]
+        area = area_by_bus.get(bus_name)
+        gen_name = row[index_gen]
+        if gen_name in hydro_gen:
+            power = ENTSOE_gen_data['Power generation'].loc[area]*energy_mix[area]['Hydro']/len(hydro_gen_by_area.get(area))  
+            row[index_P] = power
+            
+            # row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
+        elif gen_name in nuclear_gen:
+            power = ENTSOE_gen_data['Power generation'].loc[area]*energy_mix[area]['Nuclear']/len(nuclear_gen_by_area.get(area))
+            row[index_P] = power
+            # row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
+    
+    
+
+    #We have to add the VSC wind power to the wind power in the area
 
 
 
@@ -166,39 +240,49 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     index_bus_name = model['loads'][0].index('bus')
     index_P = model['loads'][0].index('P')
     index_Q = model['loads'][0].index('Q')
-
+    loads_per_area = {}
     for row in model['loads'][1:]:
         bus_name = row[index_bus_name]
-        load_name = row[index_name]
         area = area_by_bus.get(bus_name)
-        cot_phi = row[index_Q] / row[index_P] if not -1 < row[index_P] < 1 else 0
-        if row[index_name] in international_links.keys(): #if international link
-            area_transfer = international_links.get(load_name)
-            split = area_transfer.split('-')
-            if area_transfer in ENTSOE_exchange_data['Power transfer'].keys(): #Only one link out of country
-                P_new = ENTSOE_exchange_data['Power transfer'].loc[area_transfer]
-                row[index_P] = P_new if P_new != 0 else 0.01
-                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]
-            elif split[1]+'-'+split[0] in ENTSOE_exchange_data['Power transfer'].keys():
-                #reversed_transfer = split[1]+'-'+split[0]
-                P_new = - ENTSOE_exchange_data['Power transfer'].loc[split[1]+'-'+split[0]]
-                row[index_P] = P_new if P_new != 0 else 0.01
-                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]
-            else: #elif area_transfer not in ENTSOE_exchange_data['Power transfer'].keys(): #Might be multiple links out of country, need for disaggregation
-                #export/import data is not retrieved
-                P_new = row[index_P]
-                row[index_P] = P_new if P_new != 0 else 0.01
-                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]
-                '''area_transfer = area_transfer[:2] + '-' + area_transfer[-2:]
-                P_new = (ENTSOE_exchange_data['Power transfer'].loc[area_transfer]/
-                         PowerExc_by_country.get(area[:2])*row[index_P])
-                row[index_P] = P_new if P_new != 0 else 0.01
-                row[index_Q] = cot_phi * P_new if P_new != 0 else row[index_Q]'''
+        if area not in loads_per_area:
+            loads_per_area[area] = []
+        if row[index_name] in international_links.keys():
+            continue
+        else:
+            loads_per_area[area].append(row[index_name])
 
-        else: #national loads
-            P_new = row[index_P] * ENTSOE_load_data['Power consumption'].loc[area] / PowerCon_by_area.get(area)
-            row[index_P] = P_new
-            row[index_Q] = P_new * cot_phi
+    for row in model['loads'][1:]:
+        if row[index_name] in international_links.keys():
+            transfer_code = international_links[row[index_name]]
+            #OBS very specific for the Nordic 45 system 21.02.2025
+            if transfer_code == 'FI-SE_3':
+                power = -ENTSOE_exchange_data['Power transfer'].loc['SE_3-FI']
+                row[index_P] = power
+            else:
+                power = ENTSOE_exchange_data['Power transfer'].loc[transfer_code]
+                row[index_P] = power
+
+
+        else:
+            area = area_by_bus.get(row[index_bus_name])
+            load_scaling = len(loads_per_area.get(area))
+            row[index_P] = ENTSOE_load_data['Power consumption'].loc[area]/load_scaling
+
+
+
+    #take the sum of all loads and compare with the total power generation
+    load_sum = 0
+    for row in model['loads'][1:]:
+        load_sum += row[index_P]
+    print(f"Total load: {load_sum-ENTSOE_exchange_data['Power transfer'].sum()}")
+    load_sum_entsoe = ENTSOE_load_data['Power consumption'].sum()
+    print(f"Total load ENTSOE: {load_sum_entsoe}")
+    index_P = model['generators']['GEN'][0].index('P')
+    tot_power = 0
+    for row in model['generators']['GEN'][1:]:
+        tot_power += row[index_P]
+    print(f"Total power: {tot_power}")
+
 
 
     #Adds a virtual line with generator to be disconnected
@@ -222,18 +306,9 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     for row in model['generators']['GEN'][1:]:
         row[index_H] *= scaling  # Apply the scaling factor to the inertia constant
 
-    #Frequency bias:
-    index_droop = model['gov']['HYGOV'][0].index('R')
-    Freq_bias = MThesis.calc_frequency_bias(model)
 
     if VSC_HVDC:
         init_VSC(model, ENTSOE_exchange_data)
-
-    #Freeing up memory. These are not needed anymore
-    del index_P, index_Sn 
-    del index_area, from_count, cot_phi, load_name, index_Q, index_H, added
-    del other_from_count, other_load_name, other_to_count, other_transfer, area_transfer
-    del to_count, transfer_code, fault_Sn, fault_P, P_new, P_specified
 
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
@@ -258,8 +333,8 @@ def init_VSC(model, exchange_data):
         # Removing loads that corresponds to VSC HVDC transmission 
         if name in vsc_international_links.keys(): 
 
-            row[2] = 0 #setting P = 0
-            row[3] = 0 #setting Q = 0
+            row[2] = 0.01 #setting P = 0
+            row[3] = 0.01 #setting Q = 0
     
     for row in model['vsc']['VSC_SI'][1:]:
         link_name= row[0]
