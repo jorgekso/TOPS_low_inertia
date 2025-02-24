@@ -200,7 +200,14 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
             row[index_P] = P_new
             row[index_Q] = P_new * cot_phi
 
-
+    load_sum = 0
+    for row in model['loads'][1:]:
+        load_sum += row[index_P]
+    gen_sum = 0
+    for row in model['generators']['GEN'][1:]:
+        gen_sum += row[4]
+    print('Total generation:', gen_sum)
+    print('Total load:', load_sum)
     #Adds a virtual line with generator to be disconnected
     MThesis.add_virtual_line(model, fault_bus)
     add_virtual_gen = MThesis.add_virtual_gen(model, fault_bus, fault_P, fault_Sn)
@@ -258,8 +265,8 @@ def init_VSC(model, exchange_data):
         # Removing loads that corresponds to VSC HVDC transmission 
         if name in vsc_international_links.keys(): 
 
-            row[2] = 0 #setting P = 0
-            row[3] = 0 #setting Q = 0
+            row[2] = 0.01 #setting P = 0
+            row[3] = 0.01 #setting Q = 0
     
     for row in model['vsc']['VSC_SI'][1:]:
         link_name= row[0]
@@ -357,9 +364,6 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
 
-
-
-
 def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country):
     """
     Displays the power flow in the Nordic 45 system.
@@ -375,8 +379,8 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
     Flows = {'NO_1-NO_2': 0.0, 'NO_1-NO_5': 0.0, 'NO_5-NO_2': 0.0, 'NO_1-NO_3': 0.0, 'NO_4-NO_3': 0.0, 'NO_5-NO_3': 0.0,
              'NO_1-SE_3': 0.0, 'NO_3-SE_2': 0.0, 'NO_4-SE_1': 0.0, 'NO_4-SE_2': 0.0, 'NO_4-FI': 0.0, 'SE_1-FI': 0.0,
              'SE_1-SE_2': 0.0, 'SE_2-SE_3': 0.0, 'SE_3-SE_4': 0.0, 'SE_3-FI': 0.0}
-    
-    # Making dictionary to map bus to area
+
+    # dictionary to map bus to area
     area_by_bus = {} #From bus find area
     bus_by_area = {} #From area find buses
     index_bus_name = model['buses'][0].index('name')
@@ -388,7 +392,6 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
             bus_by_area[area] = [bus[index_bus_name]]
         else:
             bus_by_area[area].append(bus[index_bus_name])
-
     
     s_base = ps.s_n
 
@@ -399,11 +402,12 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
 
         from_area = area_by_bus.get(from_bus)
         to_area = area_by_bus.get(to_bus)
+
         if from_area + '-' + to_area in Flows:
             Flows[from_area + '-' + to_area] -= p_to * s_base
         elif to_area + '-' + from_area in Flows:
             Flows[to_area + '-' + from_area] -= p_from * s_base
-    
+
     #Flow along Transformer-lines
     for fbus, tbus, p_to, p_from in zip(
             ps.trafos['Trafo'].par['from_bus'], ps.trafos['Trafo'].par['to_bus'],\
@@ -415,57 +419,52 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
             Flows[from_area + '-' + to_area] -= p_to * s_base
         elif to_area + '-' + from_area in Flows:
             Flows[to_area + '-' + from_area] -= p_from * s_base
-
+    
     #Checking if flow matches production - consumption:
     generation = {'FI': 0.0, 'NO_1': 0.0, 'NO_2': 0.0, 'NO_3': 0.0, 'NO_4': 0.0, 'NO_5': 0.0,
                   'SE_1': 0.0, 'SE_2': 0.0, 'SE_3': 0.0, 'SE_4': 0.0} #Generation in each area
     consumption = generation.copy() #Consumption in each area
     power_out = generation.copy() #Simulated power output from each area
     export = generation.copy() #Export data
+    VSC_power = generation.copy() #Power from VSC-HVDC links
 
     for bus, P in zip(ps.gen['GEN'].par['bus'], ps.gen['GEN'].P_e(x0, v0).copy()):
             area = area_by_bus.get(bus)
             generation[area] += P
     
-    total_cons_test = export.copy()
-    for name, bus, P in zip(ps.loads['Load'].par['name'], ps.loads['Load'].par['bus'], ps.loads['Load'].p(x0, v0).copy()):
+    for bus, s_b, p in zip(ps.vsc['VSC_SI'].par['bus'], ps.vsc['VSC_SI'].par['S_n'], ps.vsc['VSC_SI'].par['p_ref']):
         area = area_by_bus.get(bus)
-        reverse = international_links[name].split('-') if name in international_links else None
-        if reverse is None:  # name not in international_links.keys():
+        VSC_power[area] += p*s_b
+    
+    for name, bus, P in zip(ps.loads['Load'].par['name'], ps.loads['Load'].par['bus'], ps.loads['Load'].p(x0, v0).copy()):
+
+        area = area_by_bus.get(bus)
+
+        link = international_links[name].split('-') if name in international_links else None
+
+        if link is None: # if name is not in international_links.keys() == is load 
             consumption[area] += P * s_base
         elif international_links[name] in Flows.keys():
             Flows[international_links[name]] += P * s_base
-        elif reverse[1] + '-' + reverse[0] in Flows.keys():
-            Flows[reverse[1] + '-' + reverse[0]] += P * s_base
+        elif international_links[name] in Flows.keys():
+            Flows[international_links[name]] += P * s_base
+        elif link[1] + '-' + link[0] in Flows.keys():
+            Flows[link[1] + '-' + link[0]] += P * s_base
         else:
-            export[area] += P * s_base
-        total_cons_test[area] += P * s_base
+            export[area] += P * s_base #export power LCC-HVDC
     
-        #This is the power exchange from simulation:
+    #This is the power exchange from simulation:
     for key, val in Flows.items():
         #Flow_filtered = [(key, value) for key, value in Flows.items() if area in key]
         from_to = key.split('-')
         power_out[from_to[0]] += val
         power_out[from_to[1]] -= val
     
-    for name, power, s_b in zip(
-        ps.vsc['VSC_SI'].par['name'],ps.vsc['VSC_SI'].par['p_ref'], ps.vsc['VSC_SI'].par['S_n']): 
-        area = name.split('-')[0]
-    
-        if area in export.keys():
-  
-            export[area] += power * s_b
-           
-
-    
-
-
-
     print(pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}))
     print(pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}))
     print(pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}))
     print(pd.DataFrame({'Transfer': list(export.keys()), 'exchange': list(export.values())}))
-    print(pd.DataFrame({'Area': list(total_cons_test.keys()), 'total cons': list(total_cons_test.values())}))
+    #print(pd.DataFrame({'Area': list(total_cons_test.keys()), 'total cons': list(total_cons_test.values())}))
     print(pd.DataFrame({'Area export': list(PowerExc_by_country.keys()), 'exchange': list(PowerExc_by_country.values())}))
     for area, gen, con, pflow, exc in zip(
             generation, generation.values(), consumption.values(), power_out.values(), export.values()):
@@ -473,7 +472,7 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
 
     #This should give the same
     total_loss = (ps.lines['Line'].p_loss_tot(x0, v0) + ps.trafos['Trafo'].p_loss_tot(x0, v0)) * s_base
-    print('Balance:',sum(generation.values())-sum(consumption.values()) - sum(export.values()))
+    print('Balance:',sum(generation.values())-sum(consumption.values()) - sum(export.values()) + sum(VSC_power.values()))
     print('Losses: ', total_loss)
 
 
@@ -481,3 +480,129 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
     print('FI-SE_3',ps.loads['Load'].par['name'][-12], ps.loads['Load'].p(x0, v0).copy()[-12]*s_base)
     print('SE_3-FI',ps.loads['Load'].par['name'][3], ps.loads['Load'].p(x0, v0).copy()[3]*s_base)
     print(sum(ps.gen['GEN'].par['S_n']))
+
+    
+
+
+
+# def display_power_flow2(ps, model, international_links, fault_bus, PowerExc_by_country):
+#     """
+#     Displays the power flow in the Nordic 45 system.
+#     Parameters:
+#     model_data : dictionary
+#         Dictionary containing the model data.
+#     """
+    
+#     ps.init_dyn_sim()
+#     x0 = ps.x0.copy()
+#     v0 = ps.v0.copy()
+    
+#     Flows = {'NO_1-NO_2': 0.0, 'NO_1-NO_5': 0.0, 'NO_5-NO_2': 0.0, 'NO_1-NO_3': 0.0, 'NO_4-NO_3': 0.0, 'NO_5-NO_3': 0.0,
+#              'NO_1-SE_3': 0.0, 'NO_3-SE_2': 0.0, 'NO_4-SE_1': 0.0, 'NO_4-SE_2': 0.0, 'NO_4-FI': 0.0, 'SE_1-FI': 0.0,
+#              'SE_1-SE_2': 0.0, 'SE_2-SE_3': 0.0, 'SE_3-SE_4': 0.0, 'SE_3-FI': 0.0}
+    
+#     # Making dictionary to map bus to area
+#     area_by_bus = {} #From bus find area
+#     bus_by_area = {} #From area find buses
+#     index_bus_name = model['buses'][0].index('name')
+#     index_area = model['buses'][0].index('Area')
+#     for bus in model['buses'][1:]:
+#         area = bus[index_area]
+#         area_by_bus[bus[index_bus_name]] = area
+#         if area not in bus_by_area:
+#             bus_by_area[area] = [bus[index_bus_name]]
+#         else:
+#             bus_by_area[area].append(bus[index_bus_name])
+
+    
+#     s_base = ps.s_n
+
+#     #Flow along lines
+#     for from_bus, to_bus, p_to, p_from in zip(
+#         ps.lines['Line'].par['from_bus'], ps.lines['Line'].par['to_bus'],
+#         ps.lines['Line'].p_to(x0, v0).copy(), ps.lines['Line'].p_from(x0, v0).copy()):
+
+#         from_area = area_by_bus.get(from_bus)
+#         to_area = area_by_bus.get(to_bus)
+#         if from_area + '-' + to_area in Flows:
+#             Flows[from_area + '-' + to_area] -= p_to * s_base
+#         elif to_area + '-' + from_area in Flows:
+#             Flows[to_area + '-' + from_area] -= p_from * s_base
+    
+#     #Flow along Transformer-lines
+#     for fbus, tbus, p_to, p_from in zip(
+#             ps.trafos['Trafo'].par['from_bus'], ps.trafos['Trafo'].par['to_bus'],\
+#             ps.trafos['Trafo'].p_to(x0, v0).copy(), ps.trafos['Trafo'].p_from(x0, v0).copy()):
+#         #S_base = model['base_mva']
+#         from_area = area_by_bus.get(fbus)
+#         to_area = area_by_bus.get(tbus)
+#         if from_area + '-' + to_area in Flows:
+#             Flows[from_area + '-' + to_area] -= p_to * s_base
+#         elif to_area + '-' + from_area in Flows:
+#             Flows[to_area + '-' + from_area] -= p_from * s_base
+
+#     #Checking if flow matches production - consumption:
+#     generation = {'FI': 0.0, 'NO_1': 0.0, 'NO_2': 0.0, 'NO_3': 0.0, 'NO_4': 0.0, 'NO_5': 0.0,
+#                   'SE_1': 0.0, 'SE_2': 0.0, 'SE_3': 0.0, 'SE_4': 0.0} #Generation in each area
+#     consumption = generation.copy() #Consumption in each area
+#     power_out = generation.copy() #Simulated power output from each area
+#     export = generation.copy() #Export data
+
+#     for bus, P in zip(ps.gen['GEN'].par['bus'], ps.gen['GEN'].P_e(x0, v0).copy()):
+#             area = area_by_bus.get(bus)
+#             generation[area] += P
+    
+#     total_cons_test = export.copy()
+#     for name, bus, P in zip(ps.loads['Load'].par['name'], ps.loads['Load'].par['bus'], ps.loads['Load'].p(x0, v0).copy()):
+#         area = area_by_bus.get(bus)
+#         reverse = international_links[name].split('-') if name in international_links else None
+#         if reverse is None:  # name not in international_links.keys():
+#             consumption[area] += P * s_base
+#         elif international_links[name] in Flows.keys():
+#             Flows[international_links[name]] += P * s_base
+#         elif reverse[1] + '-' + reverse[0] in Flows.keys():
+#             Flows[reverse[1] + '-' + reverse[0]] += P * s_base
+#         else:
+#             export[area] += P * s_base
+#         total_cons_test[area] += P * s_base
+    
+#         #This is the power exchange from simulation:
+#     for key, val in Flows.items():
+#         #Flow_filtered = [(key, value) for key, value in Flows.items() if area in key]
+#         from_to = key.split('-')
+#         power_out[from_to[0]] += val
+#         power_out[from_to[1]] -= val
+    
+#     for name, power, s_b in zip(
+#         ps.vsc['VSC_SI'].par['name'],ps.vsc['VSC_SI'].par['p_ref'], ps.vsc['VSC_SI'].par['S_n']): 
+#         area = name.split('-')[0]
+    
+#         if area in export.keys():
+  
+#             export[area] += power * s_b
+           
+
+    
+
+
+
+#     print(pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}))
+#     print(pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}))
+#     print(pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}))
+#     print(pd.DataFrame({'Transfer': list(export.keys()), 'exchange': list(export.values())}))
+#     print(pd.DataFrame({'Area': list(total_cons_test.keys()), 'total cons': list(total_cons_test.values())}))
+#     print(pd.DataFrame({'Area export': list(PowerExc_by_country.keys()), 'exchange': list(PowerExc_by_country.values())}))
+#     for area, gen, con, pflow, exc in zip(
+#             generation, generation.values(), consumption.values(), power_out.values(), export.values()):
+#         print('Area:', area, ' Generation - consumption: ', round(gen-con), ' After simulation: ', round(pflow+exc))
+
+#     #This should give the same
+#     total_loss = (ps.lines['Line'].p_loss_tot(x0, v0) + ps.trafos['Trafo'].p_loss_tot(x0, v0)) * s_base
+#     print('Balance:',sum(generation.values())-sum(consumption.values()) - sum(export.values()))
+#     print('Losses: ', total_loss)
+
+
+#     #Checking balance
+#     print('FI-SE_3',ps.loads['Load'].par['name'][-12], ps.loads['Load'].p(x0, v0).copy()[-12]*s_base)
+#     print('SE_3-FI',ps.loads['Load'].par['name'][3], ps.loads['Load'].p(x0, v0).copy()[3]*s_base)
+#     print(sum(ps.gen['GEN'].par['S_n']))
