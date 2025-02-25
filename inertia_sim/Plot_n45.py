@@ -33,7 +33,7 @@ if __name__ == '__main__':
     folder_path = system_path+'Results/EnergyMix/'
 
     results,file_names = uf.format_results(folder_path)
-    uf.plot_freq(results, file_names)
+    uf.plot_freq(results, file_names,scenario='NordLink')
     # results,file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)
     #uf.plot_gen(results, file_names)

@@ -44,16 +44,16 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
 
     #Kladd for energimix fordeling
     #Energy mix for different areas
-    energy_mix = {'FI': {'Wind': 0.0, 'Hydro': 0.18, 'Nuclear': 0.82, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_1': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_2': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_3': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_4': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    energy_mix = {'FI': {'Wind': 0.218, 'Hydro': 0.334, 'Nuclear': 0.448, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_1': {'Wind': 0.083, 'Hydro': 0.917, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_2': {'Wind': 0.084, 'Hydro': 0.916, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_3': {'Wind': 0.140, 'Hydro': 0.860, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_4': {'Wind': 0.139, 'Hydro': 0.861, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
                 'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_1': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_2': {'Wind': 0.0, 'Hydro': 1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_3': {'Wind': 0.0, 'Hydro': 0.46, 'Nuclear': 0.54, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_4': {'Wind': 0.0, 'Hydro': 0.0, 'Nuclear': 1, 'Solar': 0.0, 'Fossil': 0.0}}
+                'SE_1': {'Wind': 0.158, 'Hydro': 0.842, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_2': {'Wind': 0.212, 'Hydro': 0.788, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_3': {'Wind': 0.233, 'Hydro': 0.195, 'Nuclear': 0.572, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_4': {'Wind': 0.8, 'Hydro': 0.2, 'Nuclear': 0, 'Solar': 0.0, 'Fossil': 0.0}}
     # energy_mix = {'FI': {'Wind': 0.8, 'Hydro': 0.0, 'Nuclear': 0.2, 'Solar': 0.0, 'Fossil': 0.0},
     #             'NO_1': {'Wind': 0.0, 'Hydro': 0.95, 'Nuclear': 0.0, 'Solar': 0.05, 'Fossil': 0.0},
     #             'NO_2': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
@@ -187,7 +187,6 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     hydro_gen_by_area = {}
     for row in model['generators']['GEN'][1:]:
         bus_name = row[index_bus_name]
-        P_specified = row[index_P]
         area = area_by_bus.get(bus_name)
         gen_name = row[index_gen]
         if gen_name in hydro_gen:
@@ -203,14 +202,21 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     nuclear_gen_by_area = {}
     for row in model['generators']['GEN'][1:]:
         bus_name = row[index_bus_name]
-        P_specified = row[index_P]
         area = area_by_bus.get(bus_name)
         gen_name = row[index_gen]
         if gen_name in nuclear_gen:
             if area not in nuclear_gen_by_area:
                 nuclear_gen_by_area[area] = []
             nuclear_gen_by_area[area].append(gen_name)
-   
+    wind_gen_by_area = {}
+    for row in model['vsc']['VSC_SI'][1:]:
+        area = area_by_bus.get(row[1])
+        if row[0] not in international_links.values():
+            if area not in wind_gen_by_area:
+                wind_gen_by_area[area] = []
+            wind_gen_by_area[area].append(row[0])
+
+
    
    
     #Updating the specified power generation for each generation type
@@ -221,15 +227,26 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
         gen_name = row[index_gen]
         if gen_name in hydro_gen:
             power = ENTSOE_gen_data['Power generation'].loc[area]*energy_mix[area]['Hydro']/len(hydro_gen_by_area.get(area))  
+            if power > row[index_Sn]:
+                ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
             row[index_P] = power
             
             # row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
         elif gen_name in nuclear_gen:
             power = ENTSOE_gen_data['Power generation'].loc[area]*energy_mix[area]['Nuclear']/len(nuclear_gen_by_area.get(area))
+            if power > row[index_Sn]:
+                ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
             row[index_P] = power
             # row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
-    
-    
+    for row in model['vsc']['VSC_SI'][1:]:
+        name = row[0]
+        bus_name = row[1]
+        area = area_by_bus.get(bus_name)
+        if name not in international_links.keys() and len(wind_gen_by_area.get(area)) > 0:
+            power = ENTSOE_gen_data['Power generation'].loc[area] * energy_mix[area]['Wind']/len(wind_gen_by_area.get(area))
+            if power > row[2]:
+                ValueError(f"Power generation for {name} in {area} is larger than the nominal power")
+            row[3] = power/row[2]
 
     #We have to add the VSC wind power to the wind power in the area
 
@@ -282,29 +299,35 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     for row in model['generators']['GEN'][1:]:
         tot_power += row[index_P]
     print(f"Total power: {tot_power}")
-
-
+    freq_bias_calculated = MThesis.calc_frequency_bias(model)
+    print(f"Frequency bias: {freq_bias_calculated}")
 
     #Adds a virtual line with generator to be disconnected
     MThesis.add_virtual_line(model, fault_bus)
     add_virtual_gen = MThesis.add_virtual_gen(model, fault_bus, fault_P, fault_Sn)
-    # ------------------------------Updating the inertia of the system based on the kinetic energy of the EPS-----------------------------------
     area_by_bus['Virtual bus'] = model['buses'][-1][index_area] #adding to mapping
+    # ------------------------------Updating the inertia of the system based on the kinetic energy of the EPS-----------------------------------
     index_H = model['generators']['GEN'][0].index('H')
     S_EPS = 0 #Nominal power of EPS
     H_EPS = 0 #Inertia time constant of EPS
     Ek_EPS = 0 #Kinetic energy of EPS
-    # updating S_n
+
+    #  # updating S_n and scaling the frequency bias
+    # freq_bias_scaling = freq_bias/freq_bias_calculated
+    # for row in model['generators']['GEN'][1:]:
+    #     row[index_Sn] *= freq_bias_scaling
+
+    # Scaling the kinetic energy of the EPS
     for row in model['generators']['GEN'][1:]:
         #row[index_H] * = 1
         S_EPS += row[index_Sn]
         Ek_EPS += row[index_Sn] * row[index_H]
     H_EPS = Ek_EPS/S_EPS #Intertia time constant
     scaling = kinetic_energy_eps/Ek_EPS
-
-    # updating S_n and scaling inertia
     for row in model['generators']['GEN'][1:]:
         row[index_H] *= scaling  # Apply the scaling factor to the inertia constant
+   
+
 
 
     if VSC_HVDC:
@@ -434,7 +457,6 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
 
 
 
-
 def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country):
     """
     Displays the power flow in the Nordic 45 system.
@@ -450,8 +472,8 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
     Flows = {'NO_1-NO_2': 0.0, 'NO_1-NO_5': 0.0, 'NO_5-NO_2': 0.0, 'NO_1-NO_3': 0.0, 'NO_4-NO_3': 0.0, 'NO_5-NO_3': 0.0,
              'NO_1-SE_3': 0.0, 'NO_3-SE_2': 0.0, 'NO_4-SE_1': 0.0, 'NO_4-SE_2': 0.0, 'NO_4-FI': 0.0, 'SE_1-FI': 0.0,
              'SE_1-SE_2': 0.0, 'SE_2-SE_3': 0.0, 'SE_3-SE_4': 0.0, 'SE_3-FI': 0.0}
-    
-    # Making dictionary to map bus to area
+
+    # dictionary to map bus to area
     area_by_bus = {} #From bus find area
     bus_by_area = {} #From area find buses
     index_bus_name = model['buses'][0].index('name')
@@ -463,7 +485,6 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
             bus_by_area[area] = [bus[index_bus_name]]
         else:
             bus_by_area[area].append(bus[index_bus_name])
-
     
     s_base = ps.s_n
 
@@ -474,11 +495,12 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
 
         from_area = area_by_bus.get(from_bus)
         to_area = area_by_bus.get(to_bus)
+
         if from_area + '-' + to_area in Flows:
             Flows[from_area + '-' + to_area] -= p_to * s_base
         elif to_area + '-' + from_area in Flows:
             Flows[to_area + '-' + from_area] -= p_from * s_base
-    
+
     #Flow along Transformer-lines
     for fbus, tbus, p_to, p_from in zip(
             ps.trafos['Trafo'].par['from_bus'], ps.trafos['Trafo'].par['to_bus'],\
@@ -490,57 +512,52 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
             Flows[from_area + '-' + to_area] -= p_to * s_base
         elif to_area + '-' + from_area in Flows:
             Flows[to_area + '-' + from_area] -= p_from * s_base
-
+    
     #Checking if flow matches production - consumption:
     generation = {'FI': 0.0, 'NO_1': 0.0, 'NO_2': 0.0, 'NO_3': 0.0, 'NO_4': 0.0, 'NO_5': 0.0,
                   'SE_1': 0.0, 'SE_2': 0.0, 'SE_3': 0.0, 'SE_4': 0.0} #Generation in each area
     consumption = generation.copy() #Consumption in each area
     power_out = generation.copy() #Simulated power output from each area
     export = generation.copy() #Export data
+    VSC_power = generation.copy() #Power from VSC-HVDC links
 
     for bus, P in zip(ps.gen['GEN'].par['bus'], ps.gen['GEN'].P_e(x0, v0).copy()):
             area = area_by_bus.get(bus)
             generation[area] += P
     
-    total_cons_test = export.copy()
-    for name, bus, P in zip(ps.loads['Load'].par['name'], ps.loads['Load'].par['bus'], ps.loads['Load'].p(x0, v0).copy()):
+    for bus, s_b, p in zip(ps.vsc['VSC_SI'].par['bus'], ps.vsc['VSC_SI'].par['S_n'], ps.vsc['VSC_SI'].par['p_ref']):
         area = area_by_bus.get(bus)
-        reverse = international_links[name].split('-') if name in international_links else None
-        if reverse is None:  # name not in international_links.keys():
+        VSC_power[area] += p*s_b
+    
+    for name, bus, P in zip(ps.loads['Load'].par['name'], ps.loads['Load'].par['bus'], ps.loads['Load'].p(x0, v0).copy()):
+
+        area = area_by_bus.get(bus)
+
+        link = international_links[name].split('-') if name in international_links else None
+
+        if link is None: # if name is not in international_links.keys() == is load 
             consumption[area] += P * s_base
         elif international_links[name] in Flows.keys():
             Flows[international_links[name]] += P * s_base
-        elif reverse[1] + '-' + reverse[0] in Flows.keys():
-            Flows[reverse[1] + '-' + reverse[0]] += P * s_base
+        elif international_links[name] in Flows.keys():
+            Flows[international_links[name]] += P * s_base
+        elif link[1] + '-' + link[0] in Flows.keys():
+            Flows[link[1] + '-' + link[0]] += P * s_base
         else:
-            export[area] += P * s_base
-        total_cons_test[area] += P * s_base
+            export[area] += P * s_base #export power LCC-HVDC
     
-        #This is the power exchange from simulation:
+    #This is the power exchange from simulation:
     for key, val in Flows.items():
         #Flow_filtered = [(key, value) for key, value in Flows.items() if area in key]
         from_to = key.split('-')
         power_out[from_to[0]] += val
         power_out[from_to[1]] -= val
     
-    for name, power, s_b in zip(
-        ps.vsc['VSC_SI'].par['name'],ps.vsc['VSC_SI'].par['p_ref'], ps.vsc['VSC_SI'].par['S_n']): 
-        area = name.split('-')[0]
-    
-        if area in export.keys():
-  
-            export[area] += power * s_b
-           
-
-    
-
-
-
     print(pd.DataFrame({'Transfer': list(Flows.keys()), 'Power [MW]': list(Flows.values())}))
     print(pd.DataFrame({'Area': list(generation.keys()), 'Generation': list(generation.values())}))
     print(pd.DataFrame({'Area': list(consumption.keys()), 'Consumption': list(consumption.values())}))
     print(pd.DataFrame({'Transfer': list(export.keys()), 'exchange': list(export.values())}))
-    print(pd.DataFrame({'Area': list(total_cons_test.keys()), 'total cons': list(total_cons_test.values())}))
+    #print(pd.DataFrame({'Area': list(total_cons_test.keys()), 'total cons': list(total_cons_test.values())}))
     print(pd.DataFrame({'Area export': list(PowerExc_by_country.keys()), 'exchange': list(PowerExc_by_country.values())}))
     for area, gen, con, pflow, exc in zip(
             generation, generation.values(), consumption.values(), power_out.values(), export.values()):
@@ -548,7 +565,7 @@ def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_co
 
     #This should give the same
     total_loss = (ps.lines['Line'].p_loss_tot(x0, v0) + ps.trafos['Trafo'].p_loss_tot(x0, v0)) * s_base
-    print('Balance:',sum(generation.values())-sum(consumption.values()) - sum(export.values()))
+    print('Balance:',sum(generation.values())-sum(consumption.values()) - sum(export.values()) + sum(VSC_power.values()))
     print('Losses: ', total_loss)
 
 
