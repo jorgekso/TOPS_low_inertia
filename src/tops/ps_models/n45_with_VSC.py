@@ -424,7 +424,7 @@ def load():
         
         'vsc': {
             'VSC_SI': [ #VSC_SI is an updated version of Sjur Føyens VSC model to include Synthetic Inertia                                                #Synthetic Inertia parameters, K_SI=0 means that its deactivated.
-                ['name',    'bus',    'S_n',   'p_ref',     'q_ref',    'k_p',   'k_q',   'T_p',   'T_q',     'k_pll',    'T_pll',     'T_i',    'i_max',        'K_SI',     'T_SI_lag', 'P_SI_max'],
+                ['name',    'bus',    'S_n',   'p_ref',     'q_ref',    'k_p',   'k_q',   'T_p',   'T_q',     'k_pll',    'T_pll',     'T_i',    'i_max',        'K_SI',     'T_SI', 'P_SI_max'],
                 ['NO_2-GB', '5240',    1400,     0,         0,           1,      1,        0.05,     0.05,         5,          0.1,         0.01,      1.2,        0,        0.1,       1.2],
                 ['NO_2-DE', '5230',    1400,     0,         0,           1,      1,        0.05,     0.05,         5,          0.1,         0.01,      1.2,        0,        0.1,       1.2],
                 ['SE_4-LT', '8700',    700,      0,         0,           1,      1,        0.05,     0.05,         5,          0.1,         0.01,      1.2,        0,        0.1,       1.2],

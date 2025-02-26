@@ -44,31 +44,33 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
 
     #Kladd for energimix fordeling
     #Energy mix for different areas
-    energy_mix = {'FI': {'Wind': 0.218, 'Hydro': 0.334, 'Nuclear': 0.448, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_1': {'Wind': 0.083, 'Hydro': 0.917, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_2': {'Wind': 0.084, 'Hydro': 0.916, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_3': {'Wind': 0.140, 'Hydro': 0.860, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_4': {'Wind': 0.139, 'Hydro': 0.861, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_1': {'Wind': 0.158, 'Hydro': 0.842, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_2': {'Wind': 0.212, 'Hydro': 0.788, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_3': {'Wind': 0.233, 'Hydro': 0.195, 'Nuclear': 0.572, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_4': {'Wind': 0.8, 'Hydro': 0.2, 'Nuclear': 0, 'Solar': 0.0, 'Fossil': 0.0}}
-    # energy_mix = {'FI': {'Wind': 0.8, 'Hydro': 0.0, 'Nuclear': 0.2, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_1': {'Wind': 0.0, 'Hydro': 0.95, 'Nuclear': 0.0, 'Solar': 0.05, 'Fossil': 0.0},
-    #             'NO_2': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_3': {'Wind': 0.4, 'Hydro': 0.6, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_4': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+
+    #Energy mix for Nordlink 
+    # energy_mix = {'FI': {'Wind': 0.218, 'Hydro': 0.334, 'Nuclear': 0.448, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_1': {'Wind': 0.083, 'Hydro': 0.917, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_2': {'Wind': 0.084, 'Hydro': 0.916, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_3': {'Wind': 0.140, 'Hydro': 0.860, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'NO_4': {'Wind': 0.139, 'Hydro': 0.861, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
     #             'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'SE_1': {'Wind': 0.9, 'Hydro': 0.1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'SE_2': {'Wind': 0.9, 'Hydro': 0.1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'SE_3': {'Wind': 0.5, 'Hydro': 0.0, 'Nuclear': 0.4, 'Solar': 0.1, 'Fossil': 0.0},
-    #             'SE_4': {'Wind': 0.9, 'Hydro': 0.1, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0}}
+    #             'SE_1': {'Wind': 0.158, 'Hydro': 0.842, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'SE_2': {'Wind': 0.212, 'Hydro': 0.788, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'SE_3': {'Wind': 0.233, 'Hydro': 0.195, 'Nuclear': 0.572, 'Solar': 0.0, 'Fossil': 0.0},
+    #             'SE_4': {'Wind': 0.8, 'Hydro': 0.2, 'Nuclear': 0, 'Solar': 0.0, 'Fossil': 0.0}}
+    energy_mix = {'FI': {'Wind': 0.7, 'Hydro': 0.1, 'Nuclear': 0.2, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_1': {'Wind': 0.6, 'Hydro': 0.4, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_2': {'Wind': 0.6, 'Hydro': 0.4, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_3': {'Wind': 0.4, 'Hydro': 0.6, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_4': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_1': {'Wind': 0.95, 'Hydro': 0.05, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_2': {'Wind': 0.95, 'Hydro': 0.05, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_3': {'Wind': 0.6, 'Hydro': 0.0, 'Nuclear': 0.4, 'Solar': 0.0, 'Fossil': 0.0},
+                'SE_4': {'Wind': 0.95, 'Hydro': 0.05, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0}}
 
 
 
     #data_path = 'inertia_sim/N45_case_data/'
-    data_path = 'inertia_sim/N45_case_data_Nordlink/'
+    data_path = 'inertia_sim/2030_scenario/'
     #Accessing the case data and saving it in Dataframe format
     ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
@@ -455,6 +457,73 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
 
+def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag = True,line = 'L5230-1'):
+    ''''
+    Simulates a trip of a HVDC cable in the Nordic 45 system.
+    Parameters:
+    ps : PowerSystemModel
+        The power system model.
+    folderandfilename : string
+        The folder and filename of the results.
+    t : float
+        The initial time of the simulation.
+    t_end : float
+        The end time of the simulation.
+    t_trip : float
+        The time of the trip.
+    event_flag : bool
+        If True, the trip event is triggered.
+    line : string
+        The name of the line that should trip.
+    '''
+    
+    ps.power_flow()
+    ps.init_dyn_sim()
+    x0 = ps.x0.copy()
+    v0 = ps.v0.copy()
+
+
+
+
+    x_0 = ps.x_0.copy()
+
+    # Solver
+    sol = dps_sol.ModifiedEulerDAE(ps.state_derivatives, ps.solve_algebraic, 0, x_0, t_end, max_step=5e-3)
+
+    # Initialize simulation
+    t = 0
+    res = defaultdict(list)
+    t_0 = time.time()
+
+        
+    
+    while t < t_end:
+        sys.stdout.write("\r%d%%" % (t/(t_end)*100))
+
+        if t > t_trip and event_flag:
+            event_flag = False
+            index_line = ps.lines['Line'].par['name'].index(line)
+            ps.vsc['VSC_SI']['p_e'][index_line] = 0
+        result = sol.step()
+        x = sol.y
+        v = sol.v
+        t = sol.t
+        dx = ps.ode_fun(0, ps.x_0)
+        res['t'].append(t)
+        res['gen_speed'].append(ps.gen['GEN'].speed(x, v).copy())
+        res['v'].append(v.copy())
+        res['gen_I'].append(ps.gen['GEN'].I(x, v).copy())
+        res['gen_P'].append(ps.gen['GEN'].P_e(x, v).copy())
+        res['load_P'].append(ps.loads['Load'].P(x, v).copy())
+        res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
+        res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
+        res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
+        res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
+
+
+    res['bus_names'].append(ps.buses['name'])
+    print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
+    uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
 
 def display_power_flow(ps, model, international_links, fault_bus, PowerExc_by_country):
