@@ -83,8 +83,8 @@ class VSC_SI(DAEModel):
     Instantiate:
     'vsc': {
             'VSC_SI': [
-                ['name', 'bus', 'S_n', 'p_ref', 'q_ref',  'k_p', 'k_q', 'T_p', 'T_q', 'k_pll','T_pll', 'T_i', 'i_max', 'K_SI, 'T_rocof'],
-                ['VSC1', 'B1',    50,     1,       0,       1,      1,    0.1,   0.1,     5,      1,      0.01,    1.2, 10, 1],
+                ['name', 'bus', 'S_n', 'p_ref', 'q_ref',  'k_p', 'k_q', 'T_p', 'T_q', 'k_pll','T_pll', 'T_i', 'i_max', 'K_SI, 'T_SI','P_SI_max'],
+                ['VSC1', 'B1',    50,     1,       0,       1,      1,    0.1,   0.1,     5,      1,      0.01,    1.2, 10,     1,     1.2],
             ],
         }
     """
@@ -159,7 +159,7 @@ class VSC_SI(DAEModel):
         dX['angle'][:] = X['x_pll']+par['k_pll']*self.v_q(x,v)
 
         rocof = par['k_pll'] / (par['T_pll']) * (self.v_q(x,v))
-        dX['rocof'][:] = 1/par['T_rocof']*(rocof-X['rocof'])
+        dX['rocof'][:] = 1/par['T_SI']*(rocof-X['rocof'])
         return
 
     def init_from_load_flow(self, x_0, v_0, S):
