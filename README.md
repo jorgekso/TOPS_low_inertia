@@ -1,11 +1,15 @@
-This is a copy of TOPS made by Hallvar Haugdal: https://github.com/hallvar-h/TOPS/
+This repository is a fork of Eirik Stendshorne Sanden's GitHub, which itself is a copy of the TOPS model originally developed by Hallvar Haugdal: https://github.com/hallvar-h/TOPS/
 
-This is a version made in my master's thesis, adapted to easily study the Nordic 45 (N45) model - a dynamic model for the Nordic synchronous area.
-This version has laid the groundwork for further research on N45, with a script that easily adapts for different time scenarios.
+This version has been modified to study the Nordic 45 model (N45), which represents the Nordic Synchronous Area. The N45 model used here is an adapted version from Martin G. Teignes. It has been further extended to include:
 
-While doing this thesis, the HYGOV implimentations was suspected to be faulty. Therefore, a simplified HYGOV implementation is added to the core code.
+Voltage Source Converter (VSC) HVDC transmission
+Wind power modeled as VSCs
+Power System Stabilizers (PSS)
+With these additional features, the N45 model has been appropriately tuned.
 
-The complimentary script with ENTSO-E Transparency platform can be [found here](https://github.com/eirissa/ENTSO-E-Data-for-TOPS).
+Inspired by Eirik Stendshorne Sanden’s master's thesis, a new initialization function has been implemented. This function reads load, generation, and exchange data, ensuring their proper distribution. Additionally, it allows updating the energy mix, enabling the redistribution of power generation among different generators.
+
+
 
 # Original readme:
 
