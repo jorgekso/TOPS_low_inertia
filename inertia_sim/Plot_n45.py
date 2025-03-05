@@ -30,16 +30,19 @@ if __name__ == '__main__':
  
 
 
-    folder_path = system_path+'Results/2030_scenario/'
+    folder_path = system_path+'Results/Spinning reserves/'
 
     results,file_names = uf.format_results(folder_path)
-    uf.plot_freq(results, file_names)
+    uf.plot_freq(results, file_names,scenario='NordLink')
     # results,file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)
     #uf.plot_gen(results, file_names)
-    #uf.plot_gen_speed(results, file_names,'G3000-1')
+    uf.plot_gen_speed(results, file_names,'G5240-1')
+    # uf.plot_gen_speed(results, file_names,'G3359-1')
+    # uf.plot_gen_speed(results, file_names,'G7000-1')
+    # uf.plot_gen_speed(results, file_names,'G7100-1')
   
-
+    # uf.plot_power_VSC(results, file_names, 'WG7000-1' )
     # uf.plot_power_VSC(results, file_names, 'FI-EE' )
     # uf.plot_power_VSC(results, file_names, 'NO_2-GB' )
     # uf.plot_power_VSC(results, file_names, 'NO_2-DE' )

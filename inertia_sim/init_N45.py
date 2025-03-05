@@ -23,7 +23,7 @@ import tops.ps_models.n45_with_controls_HVDC as model_data
 
 
 
-def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3):
+def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,virtual_gen = True, spinning_reserve = 1.2):
 
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
@@ -42,35 +42,11 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
 
     """
 
-    #Kladd for energimix fordeling
-    #Energy mix for different areas
-
-    #Energy mix for Nordlink 
-    # energy_mix = {'FI': {'Wind': 0.218, 'Hydro': 0.334, 'Nuclear': 0.448, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_1': {'Wind': 0.083, 'Hydro': 0.917, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_2': {'Wind': 0.084, 'Hydro': 0.916, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_3': {'Wind': 0.140, 'Hydro': 0.860, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_4': {'Wind': 0.139, 'Hydro': 0.861, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'SE_1': {'Wind': 0.158, 'Hydro': 0.842, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'SE_2': {'Wind': 0.212, 'Hydro': 0.788, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'SE_3': {'Wind': 0.233, 'Hydro': 0.195, 'Nuclear': 0.572, 'Solar': 0.0, 'Fossil': 0.0},
-    #             'SE_4': {'Wind': 0.8, 'Hydro': 0.2, 'Nuclear': 0, 'Solar': 0.0, 'Fossil': 0.0}}
-    energy_mix = {'FI': {'Wind': 0.7, 'Hydro': 0.1, 'Nuclear': 0.2, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_1': {'Wind': 0.6, 'Hydro': 0.4, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_2': {'Wind': 0.6, 'Hydro': 0.4, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_3': {'Wind': 0.4, 'Hydro': 0.6, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_4': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'NO_5': {'Wind': 0.0, 'Hydro': 1.0, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_1': {'Wind': 0.95, 'Hydro': 0.05, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_2': {'Wind': 0.95, 'Hydro': 0.05, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_3': {'Wind': 0.6, 'Hydro': 0.0, 'Nuclear': 0.4, 'Solar': 0.0, 'Fossil': 0.0},
-                'SE_4': {'Wind': 0.95, 'Hydro': 0.05, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0}}
 
 
 
-    #data_path = 'inertia_sim/N45_case_data/'
-    data_path = 'inertia_sim/2030_scenario/'
+    data_path = system_path + data_path
+  
     #Accessing the case data and saving it in Dataframe format
     ENTSOE_gen_data, ENTSOE_load_data, ENTSOE_exchange_data = MThesis.Import_data_ENTSOE(data_path)
     # List of international power links: Should be updated if added links or using another model than N45
@@ -114,23 +90,23 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     #------------------------------Updating the Power generation in the n45_with_controls model-----------------------------------
     #To retrieve total specified power generation in an area
     # Initialize a list to store specified power generation by area code
-    PowerGen_by_area = {}
-    # Iterate through the 'GEN' data and extract 'bus' and 'P' columns
-    index_bus_name = model['generators']['GEN'][0].index('bus')
-    index_gen = model['generators']['GEN'][0].index('name')
-    index_P = model['generators']['GEN'][0].index('P')
+    # PowerGen_by_area = {}
+    # # Iterate through the 'GEN' data and extract 'bus' and 'P' columns
+    # index_bus_name = model['generators']['GEN'][0].index('bus')
+    # index_gen = model['generators']['GEN'][0].index('name')
+    # index_P = model['generators']['GEN'][0].index('P')
 
 
-    all_gen = set()
-    for row in model['generators']['GEN'][1:]:
-        bus_name = row[index_bus_name]
-        gen_name = row[index_gen]
-        P_specified = row[index_P]
-        area = area_by_bus.get(bus_name)
-        if area not in PowerGen_by_area:
-            PowerGen_by_area[area] = 0
-        PowerGen_by_area[area] = PowerGen_by_area[area] + P_specified
-        all_gen.add(gen_name)
+    # all_gen = set()
+    # for row in model['generators']['GEN'][1:]:
+    #     bus_name = row[index_bus_name]
+    #     gen_name = row[index_gen]
+    #     P_specified = row[index_P]
+    #     area = area_by_bus.get(bus_name)
+    #     if area not in PowerGen_by_area:
+    #         PowerGen_by_area[area] = 0
+    #     PowerGen_by_area[area] = PowerGen_by_area[area]
+    #     all_gen.add(gen_name)
 
 
     #------------------------------Updating the Power consumption in the n45_with_controls model-----------------------------------
@@ -222,36 +198,48 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
    
    
     #Updating the specified power generation for each generation type
-
+    index_Sn = model['generators']['GEN'][0].index('S_n')
+    index_P = model['generators']['GEN'][0].index('P')
     for row in model['generators']['GEN'][1:]:
         bus_name = row[index_bus_name]
         area = area_by_bus.get(bus_name)
         gen_name = row[index_gen]
         if gen_name in hydro_gen:
             power = ENTSOE_gen_data['Power generation'].loc[area]*energy_mix[area]['Hydro']/len(hydro_gen_by_area.get(area))  
-            if power > row[index_Sn]:
-                ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
+            # if power > row[index_Sn]:
+            #     ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
             row[index_P] = power
+            if gen_name == 'G3300-1':
+                continue
+            else:
+                row[index_Sn] = power*spinning_reserve
             
             # row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
         elif gen_name in nuclear_gen:
             power = ENTSOE_gen_data['Power generation'].loc[area]*energy_mix[area]['Nuclear']/len(nuclear_gen_by_area.get(area))
-            if power > row[index_Sn]:
-                ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
+            # if power > row[index_Sn]:
+            #     ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
             row[index_P] = power
+            row[index_Sn] = power*spinning_reserve
+            
             # row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
+    wind_power = 0
     for row in model['vsc']['VSC_SI'][1:]:
         name = row[0]
         bus_name = row[1]
         area = area_by_bus.get(bus_name)
-        if name not in international_links.keys() and len(wind_gen_by_area.get(area)) > 0:
+        if name not in international_links.values() and len(wind_gen_by_area.get(area)) > 0:
             power = ENTSOE_gen_data['Power generation'].loc[area] * energy_mix[area]['Wind']/len(wind_gen_by_area.get(area))
-            if power > row[2]:
-                ValueError(f"Power generation for {name} in {area} is larger than the nominal power")
+            # if power > row[2]:
+            #     ValueError(f"Power generation for {name} in {area} is larger than the nominal power")
+            # row[2] = power*1.2
             row[3] = power/row[2]
-
+            row[4] = 0.0
+            
+            wind_power += power
+    print(f"Total wind power: {wind_power}")
     #We have to add the VSC wind power to the wind power in the area
-
+    
 
 
     # ------------------------------Updating loads' active and reactive power consumptions------------------------------
@@ -303,37 +291,36 @@ def init_n45(model_data, data_path, display_pf, VSC_HVDC = True, fault_bus = '70
     print(f"Total power: {tot_power}")
     freq_bias_calculated = MThesis.calc_frequency_bias(model)
     print(f"Frequency bias: {freq_bias_calculated}")
-
-    #Adds a virtual line with generator to be disconnected
-    MThesis.add_virtual_line(model, fault_bus)
-    add_virtual_gen = MThesis.add_virtual_gen(model, fault_bus, fault_P, fault_Sn)
-    area_by_bus['Virtual bus'] = model['buses'][-1][index_area] #adding to mapping
+    if virtual_gen:
+        #Adds a virtual line with generator to be disconnected
+        MThesis.add_virtual_line(model, fault_bus)
+        add_virtual_gen = MThesis.add_virtual_gen(model, fault_bus, fault_P, fault_Sn)
+        area_by_bus['Virtual bus'] = model['buses'][-1][index_area] #adding to mapping
     # ------------------------------Updating the inertia of the system based on the kinetic energy of the EPS-----------------------------------
-    index_H = model['generators']['GEN'][0].index('H')
-    S_EPS = 0 #Nominal power of EPS
-    H_EPS = 0 #Inertia time constant of EPS
-    Ek_EPS = 0 #Kinetic energy of EPS
+    # index_H = model['generators']['GEN'][0].index('H')
+    # S_EPS = 0 #Nominal power of EPS
+    # H_EPS = 0 #Inertia time constant of EPS
+    # Ek_EPS = 0 #Kinetic energy of EPS
 
     #  # updating S_n and scaling the frequency bias
     # freq_bias_scaling = freq_bias/freq_bias_calculated
     # for row in model['generators']['GEN'][1:]:
     #     row[index_Sn] *= freq_bias_scaling
 
-    # Scaling the kinetic energy of the EPS
-    for row in model['generators']['GEN'][1:]:
-        #row[index_H] * = 1
-        S_EPS += row[index_Sn]
-        Ek_EPS += row[index_Sn] * row[index_H]
-    H_EPS = Ek_EPS/S_EPS #Intertia time constant
-    scaling = kinetic_energy_eps/Ek_EPS
-    for row in model['generators']['GEN'][1:]:
-        row[index_H] *= scaling  # Apply the scaling factor to the inertia constant
-   
+    # # Scaling the kinetic energy of the EPS
+    # for row in model['generators']['GEN'][1:]:
+    #     #row[index_H] * = 1
+    #     S_EPS += row[index_Sn]
+    #     Ek_EPS += row[index_Sn] * row[index_H]
+    # H_EPS = Ek_EPS/S_EPS #Intertia time constant
+    # scaling = kinetic_energy_eps/Ek_EPS
+    # for row in model['generators']['GEN'][1:]:
+    #     row[index_H] *= scaling  # Apply the scaling factor to the inertia constant
+    
 
 
 
-    if VSC_HVDC:
-        init_VSC(model, ENTSOE_exchange_data)
+    init_VSC(model, ENTSOE_exchange_data)
 
     ps = dps.PowerSystemModel(model=model)
     ps.use_numba = True
@@ -457,7 +444,7 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
 
-def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag = True,line = 'L5230-1'):
+def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag = True, link_name = 'NO_2-DE'):
     ''''
     Simulates a trip of a HVDC cable in the Nordic 45 system.
     Parameters:
@@ -502,8 +489,10 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
 
         if t > t_trip and event_flag:
             event_flag = False
-            index_line = ps.lines['Line'].par['name'].index(line)
-            ps.vsc['VSC_SI']['p_e'][index_line] = 0
+            #find the index of the vsc corresponding to the name load 
+            #ps.vsc['VSC_SI'].par['name'] is an ndarray
+            index_vsc = np.where(ps.vsc['VSC_SI'].par['name'] == link_name)[0]
+            ps.vsc['VSC_SI'].set_input('p_ref', 0,index_vsc)
         result = sol.step()
         x = sol.y
         v = sol.v
@@ -520,7 +509,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
         res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
         res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
 
-
+    res['gen_name'].append(ps.gen['GEN'].par['name'])
     res['bus_names'].append(ps.buses['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
