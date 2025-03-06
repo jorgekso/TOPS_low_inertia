@@ -31,16 +31,16 @@ if __name__ == '__main__':
                 'SE_4': {'Wind': 0.95, 'Hydro': 0.05, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0}}
 
 
-    ps = func.init_n45(model_data=n45,display_pf=False,energy_mix= energy_mix, 
-                       data_path='inertia_sim/2030_scenario/',
-                       kinetic_energy_eps=150e3,virtual_gen=False,spinning_reserve=4)
+    ps = func.init_n45(model_data=n45,display_pf=True,energy_mix= energy_mix, 
+                       data_path= 'inertia_sim/2030_scenario/',
+                       virtual_gen=False,spinning_reserve=1.2)
     # func.run_sensitivity(ps,'r',[3.5,3,2.5,2,1.5],foldername = 'r_sensitivity/')
     #func.gen_trip(ps=ps,fault_bus = '5230',fault_Sn = 792,fault_P = 792,kinetic_energy_eps = 300e3, 
     # folderandfilename = 'NordLink/test1',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False)
     # func.gen_trip(ps=ps,folderandfilename = '2030_scenario/test', fault_bus = '5230',fault_Sn = 1400,
     #               fault_P = 1400,event_flag=True, VSC=True, t_trip = 10.81)
 
-    func.HVDC_cable_trip(ps=ps,folderandfilename = 'Spinning reserves/2030 0,76',
-                         link_name = 'NO_2-DE',t_trip=10.81,event_flag=False,t_end=50)
+    func.HVDC_cable_trip(ps=ps,folderandfilename = '2030_Scenario/2030 20% spinning reserves',
+                         link_name = 'NO_2-DE',t_trip=16,event_flag=True,t_end=50)
     
 
