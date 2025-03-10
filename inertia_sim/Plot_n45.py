@@ -24,20 +24,14 @@ if __name__ == '__main__':
         "figure.titlesize": 16     # Font size for figure title
     })
 
-    
-
-  
- 
-
-
-    folder_path = system_path+'Results/2030_Scenario/'
+    folder_path = system_path+'Results/EnergyMix/'
 
     results,file_names = uf.format_results(folder_path)
-    uf.plot_freq(results, file_names)
+    uf.plot_freq(results, file_names, scenario = 'NordLink')
     # results,file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)
     #uf.plot_gen(results, file_names)
-    # uf.plot_gen_speed(results, file_names,'G5240-1')
+    uf.plot_gen_power(results, file_names,'G3359-2')
     # uf.plot_gen_speed(results, file_names,'G3359-1')
     # uf.plot_gen_speed(results, file_names,'G7000-1')
     # uf.plot_gen_speed(results, file_names,'G7100-1')
