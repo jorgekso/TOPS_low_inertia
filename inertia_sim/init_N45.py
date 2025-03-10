@@ -23,7 +23,7 @@ import tops.ps_models.n45_with_controls_HVDC as model_data
 
 
 
-def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,virtual_gen = True, spinning_reserve = 1.2):
+def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = None,virtual_gen = True, spinning_reserve = 1.2):
 
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.
@@ -209,7 +209,7 @@ def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fa
             # if power > row[index_Sn]:
             #     ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
             row[index_P] = power
-            if gen_name == 'G3300-1':
+            if gen_name == 'G'+model['slack_bus']+'-1':
                 continue
             else:
                 row[index_Sn] = power*spinning_reserve
@@ -219,10 +219,20 @@ def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fa
             power = ENTSOE_gen_data['Power generation'].loc[area]*energy_mix[area]['Nuclear']/len(nuclear_gen_by_area.get(area))
             # if power > row[index_Sn]:
             #     ValueError(f"Power generation for {gen_name} in {area} is larger than the nominal power")
+            if gen_name == 'G'+model['slack_bus']+'-1':
+                continue
             row[index_P] = power
             row[index_Sn] = power*spinning_reserve
             
             # row[index_Sn] = row[index_Sn] * ENTSOE_gen_data['Power generation'].loc[area] / PowerGen_by_area.get(area)
+    index_P = model['generators']['GEN'][0].index('P')
+    hydro_and_nuclear_power = 0
+    for row in model['generators']['GEN'][1:]:
+        hydro_and_nuclear_power += row[index_P]
+    print(f"Total hydro and nuclear power: {hydro_and_nuclear_power}")
+    
+
+    
     wind_power = 0
     for row in model['vsc']['VSC_SI'][1:]:
         name = row[0]
@@ -238,8 +248,8 @@ def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fa
             
             wind_power += power
     print(f"Total wind power: {wind_power}")
-    #We have to add the VSC wind power to the wind power in the area
-    
+    print(f"Total power: {hydro_and_nuclear_power+wind_power}")
+    print(f"Total power ENTSOE: {ENTSOE_gen_data['Power generation'].sum()}")
 
 
     # ------------------------------Updating loads' active and reactive power consumptions------------------------------
@@ -273,51 +283,51 @@ def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fa
         else:
             area = area_by_bus.get(row[index_bus_name])
             load_scaling = len(loads_per_area.get(area))
-            row[index_P] = ENTSOE_load_data['Power consumption'].loc[area]/load_scaling
+            power = ENTSOE_load_data['Power consumption'].loc[area]/load_scaling
+            row[index_P] = power
+            # row[index_Q] = power*0.1
+            
 
-
-
+    
     #take the sum of all loads and compare with the total power generation
     load_sum = 0
     for row in model['loads'][1:]:
         load_sum += row[index_P]
-    print(f"Total load: {load_sum-ENTSOE_exchange_data['Power transfer'].sum()}")
+    print(f"Total load: {load_sum-(ENTSOE_exchange_data['Power transfer'].sum()-ENTSOE_exchange_data['Power transfer'].loc['SE_3-FI'])}")
     load_sum_entsoe = ENTSOE_load_data['Power consumption'].sum()
     print(f"Total load ENTSOE: {load_sum_entsoe}")
-    index_P = model['generators']['GEN'][0].index('P')
-    tot_power = 0
-    for row in model['generators']['GEN'][1:]:
-        tot_power += row[index_P]
-    print(f"Total power: {tot_power}")
+    print(f"Total import/export{(ENTSOE_exchange_data['Power transfer'].sum()-ENTSOE_exchange_data['Power transfer'].loc['SE_3-FI'])}")
     freq_bias_calculated = MThesis.calc_frequency_bias(model)
     print(f"Frequency bias: {freq_bias_calculated}")
+    
+
+   
     if virtual_gen:
         #Adds a virtual line with generator to be disconnected
         MThesis.add_virtual_line(model, fault_bus)
         add_virtual_gen = MThesis.add_virtual_gen(model, fault_bus, fault_P, fault_Sn)
         area_by_bus['Virtual bus'] = model['buses'][-1][index_area] #adding to mapping
     # ------------------------------Updating the inertia of the system based on the kinetic energy of the EPS-----------------------------------
-    # index_H = model['generators']['GEN'][0].index('H')
-    # S_EPS = 0 #Nominal power of EPS
-    # H_EPS = 0 #Inertia time constant of EPS
-    # Ek_EPS = 0 #Kinetic energy of EPS
-
-    #  # updating S_n and scaling the frequency bias
-    # freq_bias_scaling = freq_bias/freq_bias_calculated
-    # for row in model['generators']['GEN'][1:]:
-    #     row[index_Sn] *= freq_bias_scaling
-
-    # # Scaling the kinetic energy of the EPS
-    # for row in model['generators']['GEN'][1:]:
-    #     #row[index_H] * = 1
-    #     S_EPS += row[index_Sn]
-    #     Ek_EPS += row[index_Sn] * row[index_H]
-    # H_EPS = Ek_EPS/S_EPS #Intertia time constant
-    # scaling = kinetic_energy_eps/Ek_EPS
-    # for row in model['generators']['GEN'][1:]:
-    #     row[index_H] *= scaling  # Apply the scaling factor to the inertia constant
+    index_H = model['generators']['GEN'][0].index('H')
+    S_EPS = 0 #Nominal power of EPS
+    H_EPS = 0 #Inertia time constant of EPS
+    Ek_EPS = 0 #Kinetic energy of EPS
     
-
+    # Scaling the kinetic energy of the EPS
+    for row in model['generators']['GEN'][1:]:
+        #row[index_H] * = 1
+        S_EPS += row[index_Sn]
+        Ek_EPS += row[index_Sn] * row[index_H]
+    H_EPS = Ek_EPS/S_EPS #Intertia time constant
+    print(f'Kinetic energy before scaling: {Ek_EPS}')
+    if kinetic_energy_eps is not None:
+        scaling = kinetic_energy_eps/Ek_EPS
+        for row in model['generators']['GEN'][1:]:
+            row[index_H] *= scaling  # Apply the scaling factor to the inertia constant
+        kinetic_energy_calculated = 0
+        for row in model['generators']['GEN'][1:]:
+            kinetic_energy_calculated += row[index_Sn]*row[index_H]
+        print(f"Kinetic energy: {kinetic_energy_calculated}")
 
 
     init_VSC(model, ENTSOE_exchange_data)
@@ -468,8 +478,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
     ps.init_dyn_sim()
     x0 = ps.x0.copy()
     v0 = ps.v0.copy()
-
-
+    
 
 
     x_0 = ps.x_0.copy()
@@ -482,7 +491,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
     res = defaultdict(list)
     t_0 = time.time()
 
-        
+    print(max(abs(ps.state_derivatives(0, ps.x_0, ps.v_0))))
     
     while t < t_end:
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
@@ -507,8 +516,8 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
         res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
         res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
         res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
-        res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
-
+    
+    res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
     res['gen_name'].append(ps.gen['GEN'].par['name'])
     res['bus_names'].append(ps.buses['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
