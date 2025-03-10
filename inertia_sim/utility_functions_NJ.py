@@ -71,7 +71,7 @@ def format_results(path):
                 pass
     return results, file_names
 
-def plot_gen(results, file_names, gen_name=None):
+def plot_gen_power(results, file_names, gen_name=None):
     """
     Plot generator power output results from simulation.
 
@@ -93,7 +93,7 @@ def plot_gen(results, file_names, gen_name=None):
             for gen in res['gen_name']:
                 plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'].index(gen)], label=gen)
     plt.xlabel('Time [s]')
-    plt.ylabel('Speed [p.u.]')
+    plt.ylabel('Power [MW]')
     plt.grid()
     plt.legend()
 
@@ -250,7 +250,7 @@ def plot_gen_speed(results, file_names, gen_name=None):
     plt.figure()
     it = 0   
     for res in results:
-        if gen_name:
+        if gen_name is not None:
             plt.plot(res['t'], np.array(res['gen_speed'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
             it += 1
         else:
