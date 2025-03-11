@@ -1,8 +1,9 @@
 if __name__ == '__main__':
     #This code is used to generate a trip of a 1400MW generator in the 3359 bus of the Nordic 45 system.
     import init_N45 as func
+    import fault_events as fault
     #iterates over the different kinetic energy scenarios
-    import tops.ps_models.n45_with_controls_HVDC as n45
+    import tops.ps_models.n45_tuned as n45
 
     #Kladd for energimix fordeling
     #Energy mix for different areas
@@ -40,7 +41,8 @@ if __name__ == '__main__':
     # func.gen_trip(ps=ps,folderandfilename = '2030_scenario/test', fault_bus = '5230',fault_Sn = 1400,
     #               fault_P = 1400,event_flag=True, VSC=True, t_trip = 10.81)
 
-    func.HVDC_cable_trip(ps=ps,folderandfilename = 'Tuning/Nordlink r=3.5',
+    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'Tuning/Nordlink GOV r=5 and PSS T=10 K=8 half PSS',
                          link_name = 'NO_2-DE',t_trip=10.81,event_flag=True,t_end=50)
-    
+    # fault.HVDC_cable_trip(ps=ps,folderandfilename = 'Tuning/Nordlink GOV r=5 and PSS T=10 K=8 T_3=0.05 T_4=0.033',
+    #                      link_name = 'NO_2-DE',t_trip=15.06,event_flag=True,t_end=70)
 

@@ -152,10 +152,10 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
     t = 0
     res = defaultdict(list)
     t_0 = time.time()
-
+    print(max(abs(ps.state_derivatives(0, ps.x_0, ps.v_0))))
 
     FFR_activated = False
-        
+       
     
     while t < t_end:
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
@@ -188,8 +188,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
         res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
         res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
         res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
-        res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
-
+    res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
     res['gen_name'].append(ps.gen['GEN'].par['name'])
     res['bus_names'].append(ps.buses['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
