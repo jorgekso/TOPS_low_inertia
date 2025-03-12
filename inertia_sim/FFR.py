@@ -26,13 +26,12 @@ import numpy as np
 #     return activated       
 
 
-def activate_FFR(ps, local_freq, FFR_type, t, FFR_providers, activated, t_duration):
+def activate_FFR(ps, local_freq, t, FFR_providers, activated, FFR_type, t_duration = 30):
+    
     threshold = 49.7
     P_FFR = 50 #MW
 
     t_delay = 1.3 
-    t_duration = 30
-
     t_FFR = (t + t_delay)
 
 
@@ -55,7 +54,7 @@ def activate_FFR(ps, local_freq, FFR_type, t, FFR_providers, activated, t_durati
         elif FFR_type == 'VSC':
             for name in ps.vsc['VSC_SI'].par['name']:
 
-                if (t_FFR <= t <= (t_FFR + t_duration)):
+                if  t <= (t + t_duration):
                     activated = True
                     for name in FFR_providers:
                         idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
@@ -64,9 +63,9 @@ def activate_FFR(ps, local_freq, FFR_type, t, FFR_providers, activated, t_durati
                     activated = False
                     ps.vsc['VSC_SI'].activate_FRR(-P_FFR, idx)
                 
-
-
     return activated
+
+
 
 def check_FFR_type(ps, FFR_providers):
 
