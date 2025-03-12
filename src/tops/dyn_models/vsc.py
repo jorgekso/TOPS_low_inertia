@@ -217,9 +217,8 @@ class VSC_SI(DAEModel):
 
         return f'FFR activated at {self.par["bus"]} with power injected = {P_FFR} MW'
     
-    def freq_est(self, x,v):
+    def freq_est(self, x):
         X = self.local_view(x)
-        dX = 1/self.par['T_pll']*(self.v_q(x,v)-X['v_q'])
-        return dX/(2 * np.pi * self.sys_par['f_n'])
+        return X['x_pll']/(2*np.pi*self.sys_par['f_n'])
 
     # endregion
