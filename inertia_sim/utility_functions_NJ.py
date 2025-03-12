@@ -182,6 +182,8 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
                 # plt.plot(data['Seconds'], data['Frequency: NO2'], label='NO2')
                 # plt.plot(data['Seconds'], data['Frequency: NO3'], label='NO3')
                 # plt.plot(data['Seconds'], data['mean_freq'], label='Average frequency')
+    #Add a dotted line at 49.1 Hz
+    plt.axhline(y=49.1, color='r', linestyle='--', label='49.1 Hz')
     plt.xlabel('Time [s]')
     plt.ylabel('Frequency [Hz]')
     plt.grid()  

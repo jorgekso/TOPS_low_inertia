@@ -21,8 +21,8 @@ def activate_FFR(ps, mean_freq,t, vsc_names,activated):
                     p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
                 ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
 
-                print(f'FFR activated at {name}')
-                print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
+                # print(f'FFR activated at {name}')
+                # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
     return activated       
 
             
