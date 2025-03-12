@@ -1,30 +1,81 @@
 import numpy as np 
 
 
-def activate_FFR(ps, mean_freq,t, vsc_names,activated):
+# def activate_FFR(ps, mean_freq,t, vsc_names,activated):
     
-    threshold = 49.7
+#     threshold = 49.7
    
-    if (mean_freq <= threshold) and activated == False:
-        activated = True
-        print(f'FFR activated at t = {t}')
-        P_FFR = 50 #Max FFR 50 MW
+#     if (mean_freq <= threshold) and activated == False:
+#         activated = True
+#         print(f'FFR activated at t = {t}')
+#         P_FFR = 50 #Max FFR 50 MW
 
-        for name in ps.vsc['VSC_SI'].par['name']:
+#         for name in ps.vsc['VSC_SI'].par['name']:
 
-            if name in vsc_names:
-                idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
-                p_pre = ps.vsc['VSC_SI'].par['p_ref'][idx]
-                p_new = p_pre + P_FFR/ps.vsc['VSC_SI'].par['S_n'][idx]
+#             if name in vsc_names:
+#                 idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
+#                 p_pre = ps.vsc['VSC_SI'].par['p_ref'][idx]
+#                 p_new = p_pre + P_FFR/ps.vsc['VSC_SI'].par['S_n'][idx]
 
-                if p_new > ps.vsc['VSC_SI'].par['S_n'][idx]:
-                    p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
-                ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
+#                 if p_new > ps.vsc['VSC_SI'].par['S_n'][idx]:
+#                     p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
+#                 ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
 
-                # print(f'FFR activated at {name}')
-                # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
-    return activated       
+#                 # print(f'FFR activated at {name}')
+#                 # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
+#     return activated       
 
+
+def activate_FFR(ps, local_freq, FFR_type, t, FFR_providers, activated, t_duration):
+    threshold = 49.7
+    P_FFR = 50 #MW
+
+    t_delay = 1.3 
+    t_duration = 30
+
+    t_FFR = (t + t_delay)
+
+
+    FFR_type = check_FFR_type(ps, FFR_providers)
+
+    if (local_freq <= threshold) and activated == False:
+        
+
+        if FFR_type == 'Load':
+            if (t_FFR <= t <= (t_FFR + t_duration)):
+                activated = True
+                for name in FFR_providers:
+                    idx = np.where(ps.loads.par['name'] == name)[0][0]
+                    ps.loads.activate_FRR(P_FFR, idx)
+            else:
+                activated = False
+                ps.loads.activate_FRR(-P_FFR, idx)
+            
+            
+        elif FFR_type == 'VSC':
+            for name in ps.vsc['VSC_SI'].par['name']:
+
+                if (t_FFR <= t <= (t_FFR + t_duration)):
+                    activated = True
+                    for name in FFR_providers:
+                        idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
+                        ps.vsc['VSC_SI'].activate_FRR(P_FFR, idx)
+                else:
+                    activated = False
+                    ps.vsc['VSC_SI'].activate_FRR(-P_FFR, idx)
+                
+
+
+    return activated
+
+def check_FFR_type(ps, FFR_providers):
+
+    for provider in FFR_providers:
+        if provider in ps.loads.par['name']:
+            FFR_type = 'Load'
+        else:
+            FFR_type = 'VSC'
+    return FFR_type 
             
 
 if __name__ == '__main__':

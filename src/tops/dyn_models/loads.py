@@ -62,6 +62,10 @@ class Load(DAEModel):
     
     def activate_FFR(self, P_FFR):
         # MW
+        if P_FFR > self.par['P']:
+            return ('FFR power exceeds load')
+            
+
         self.par['P'] -= P_FFR 
         return (f'FFR activated at {self.par["bus"]} with power injected = {P_FFR} MW')
     
