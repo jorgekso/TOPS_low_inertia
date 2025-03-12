@@ -60,6 +60,11 @@ class Load(DAEModel):
         # MVA
         return self.s(x, v).imag*self.sys_par['s_n']
     
+    def activate_FFR(self, P_FFR):
+        # MW
+        self.par['P'] -= P_FFR 
+        return (f'FFR activated at {self.par["bus"]} with power injected = {P_FFR} MW')
+    
 
 
 class DynamicLoad(DAEModel):
