@@ -20,11 +20,16 @@ class Load(DAEModel):
     def reduced_system(self):
         return self.par['bus']
 
+    def input_list(self):
+        return ['P']
+
     def load_flow_pq(self):
         return self.bus_idx['terminal'], self.par['P'], self.par['Q']
 
     def init_from_load_flow(self, x_0, v_0, S):
         self.v_0 = v_0[self.bus_idx['terminal']]
+
+        self._input_values['P'] = self.par['P']
         s_load = (self.par['P'] + 1j * self.par['Q']) / self.sys_par['s_n']
         z_load = np.conj(abs(self.v_0) ** 2 / s_load)
         self.y_load = 1/z_load
@@ -34,6 +39,7 @@ class Load(DAEModel):
 
     def dyn_const_adm(self):
         return self.y_load, (self.bus_idx_red['terminal'],)*2
+
 
     def i(self, x, v):
         return v[self.bus_idx_red['terminal']]*self.y_load
@@ -66,8 +72,9 @@ class Load(DAEModel):
             return ('FFR power exceeds load')
             
 
-        self.par['P'][idx] -= P_FFR 
-        return (f'FFR activated at {self.par["bus"]} with power injected = {P_FFR} MW')
+        self.par['P'][idx] = self.par['P'][idx] - P_FFR 
+        
+        print(f'FFR activated at {self.par['bus'][idx]} with power injected = {P_FFR} MW')
     
 
 
@@ -101,6 +108,7 @@ class DynamicLoad(DAEModel):
         y_load = 1/z_load
         self._input_values['g_setp'] = y_load.real
         self._input_values['b_setp'] = y_load.imag
+        
 
         V_n = self.sys_par['bus_v_n'][self.bus_idx['terminal']]
         self.I_n = self.sys_par['s_n']/(np.sqrt(3)*V_n)

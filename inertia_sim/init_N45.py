@@ -57,6 +57,7 @@ def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fa
                            'L7020-2': 'FI-RU'}
     #Initializing the model from the load data in n45_with_controls
     model = model_data.load()
+ 
 
     # ------------------------------ Reparameterization to fit specific time-senario -----------------------------------
     index_area = model['buses'][0].index('Area')

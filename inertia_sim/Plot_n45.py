@@ -21,11 +21,15 @@ if __name__ == '__main__':
         "figure.titlesize": 16     # Font size for figure title
     })
 
+    Load = ['L3100-1', 'L3000-3','L3300-2']
 
-    folder_path = system_path+'Results/FFR_test/'
+    folder_path = system_path+'Results/FFR/'
 
     results, file_names = uf.format_results(folder_path)
-    uf.plot_freq(results, file_names, scenario = 'NordLink')
+    uf.plot_freq(results, file_names)
+    uf.plot_power_load(results, file_names,'L3100-1' )
+    uf.plot_power_load(results, file_names,'L3000-3' )
+    uf.plot_power_load(results, file_names,'L3300-2' )
     # uf.plot_freq(results, file_names)
     # results, file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)

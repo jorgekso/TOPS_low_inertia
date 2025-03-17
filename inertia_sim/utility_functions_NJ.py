@@ -184,7 +184,7 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
                 # plt.plot(data['Seconds'], data['mean_freq'], label='Average frequency')
     #Add a dotted line at 49.1 Hz
     plt.axhline(y=49.1, color='r', linestyle='--', label='49.1 Hz')
-    plt.axhline(y=49.7, color='b', linestyle='--', label='49.1 Hz')
+    plt.axhline(y=49.7, color='b', linestyle='--', label='49.7 Hz')
     plt.xlabel('Time [s]')
     plt.ylabel('Frequency [Hz]')
     plt.grid()  
@@ -263,6 +263,24 @@ def plot_gen_speed(results, file_names, gen_name=None):
     plt.ylabel('Speed [p.u.]')
     plt.grid()
     plt.legend()
+
+
+def plot_power_load(results, file_names, load_name=None):
+    plt.figure()
+    it = 0
+    for res in results:
+        if load_name is not None:
+                plt.plot(res['t'], np.array(res['load_P'])[:, res['load_names'][0].index(load_name)], label=load_name + ' ' + file_names[it].stem)
+                it += 1
+        else:
+            for load in res['load_names'][0]:
+                plt.plot(res['t'], np.array(res['load_P'])[:, res['load_names'][0].index(load)], label=load)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Power [MW]')
+    plt.grid()
+    plt.legend()
+
+
     
 
 

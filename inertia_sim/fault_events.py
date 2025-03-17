@@ -14,6 +14,8 @@ importlib.reload(dps)
 import utility_functions_NJ as uf
 import numpy as np 
 
+import matplotlib.pyplot as plt
+
 
 from FFR import activate_FFR
 
@@ -155,6 +157,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
     print(max(abs(ps.state_derivatives(0, ps.x_0, ps.v_0))))
 
     FFR_activated = False
+    t_FFR = 0
        
     
     while t < t_end:
@@ -173,9 +176,15 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
         
 
 
-        if FFR == True:
+        if FFR_sources != None:
             mean_freq = 50 + 50*np.mean(ps.gen['GEN'].speed(x,v))
-            FFR_activated = activate_FFR(ps, mean_freq,t, FFR_sources, FFR_activated)
+           
+            FFR_activated, t_FFR = activate_FFR(ps, mean_freq,t, FFR_sources, FFR_activated, t_FFR,x,v)
+            
+            
+
+       
+                
 
 
         dx = ps.ode_fun(0, ps.x_0)
@@ -187,9 +196,11 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
         res['load_P'].append(ps.loads['Load'].P(x, v).copy())
         res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
         res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
-        res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
-    res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
-    res['gen_name'].append(ps.gen['GEN'].par['name'])
-    res['bus_names'].append(ps.buses['name'])
+    res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'].copy())
+    res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'].copy())
+    res['gen_name'].append(ps.gen['GEN'].par['name'].copy())
+    res['bus_names'].append(ps.buses['name'].copy())
+    res['load_names'].append(ps.loads['Load'].par['name'].copy())
+
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
