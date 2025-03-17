@@ -1,6 +1,6 @@
 # Updated N45 version by Nora Lillelien and Jørgen Sørhaug. Adapted from Martin Teignes version of N45.
 # This version includes HVDC links and wind power as VSC.
-# All generator values and wind generator values are updated through a different script and should not be taken at face value.
+# All generator power and wind generator power are updated through a different script and should not be taken at face value.
 def load():
     return {
         'base_mva': 1000,
@@ -211,6 +211,8 @@ def load():
                 ['G3000-1', '3000',  1100.00,  0,     709.5763,   1,   10.2, 0,    2.22,  2.13,  0.36,    0.468,   0.225,    0.225,    5,        1,        0.05,      0.05],#Forsmark 1 https://world-nuclear.org/information-library/country-profiles/countries-o-s/sweden
                 ['G3000-2', '3000',  1100.00,  0,     709.5763,   1,   10.2,   0,    2.22,  2.13,  0.36,    0.468,   0.225,    0.225,    5,        1,        0.05,      0.05], #Forsmark 2
                 ['G3000-3', '3000',  1200.00,  0,     787.5246,   1,   10.2,   0,    2.42,  2,     0.23,    0.4108,  0.16,     0.16,     10.8,     1,        0.05,      0.05], #Forsmark 3
+                ['G3115-1', '3115',  1100.00,  0,     709.5763,   1,   5.1,  0,    0.75,  0.5,   0.25,    0.5,     0.15385,  0.15385,  5,        1,        0.06,      0.1],
+                ['G3115-2', '3115',  1100.00,  0,     709.5763,   1,   5.1,  0,    0.75,  0.5,   0.25,    0.5,     0.15385,  0.15385,  5,        1,        0.06,      0.1],
                 ['G3245-1', '3245',  7000.00,  0,     5840,       1,   5.1,  0,    0.75,  0.5,   0.25,    0.5,     0.15385,  0.15385,  5,        1,        0.06,      0.1],
                 ['G3249-1', '3249',  1200.00,  0,     1005.422,   1,   5.1,  0,    1.036, 0.63,  0.28,    0.63,    0.21,     0.21,     10.13,    1,        0.06,      0.1],
                 ['G3249-2', '3249',  1200.00,  0,     1005.422,   1,   5.1,  0,    1.036, 0.63,  0.28,    0.63,    0.21,     0.21,     10.13,    1,        0.06,      0.1],
@@ -480,16 +482,8 @@ def load():
                 ['WG8500-2',   '8500',    1000,      0,         0,           1,      1,        0.05,     0.05,         5,          0.1,         0.01,      1.2,        0,        0.1,       0.05],
             ]
         },
-    #     'vsc' : 
-    #     {'VSC': [
-    #         ['name',     'T_pll',      'T_i',    'bus',    'P_K_p',    'P_K_i',    'Q_K_p',    'Q_K_i',    'P_setp',   'Q_setp',   ],
-    #         ['NO_2-GB',    0.1,        1,      '5240',    0.1,        0.1,        0.1,        0.1,        0.1,          0],
-    #         ['NO_2-DE',    0.1,        1,      '5230',    0.1,        0.1,        0.1,        0.1,        0.1,          0],
-    #         ['SE_4-LT',    0.1,        1,      '8700',    0.1,        0.1,        0.1,        0.1,        0.1,          0],
-    #         ['FI-EE',      0.1,        1,      '7020',    0.1,        0.1,        0.1,        0.1,        518,          50],
-            
-    # ]},
-    
+
+
 }
 if __name__ == '__main__':
     import tops.dynamic as dps
