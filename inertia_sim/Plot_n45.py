@@ -25,7 +25,7 @@ if __name__ == '__main__':
     })
 
 
-    folder_path = system_path+'Results/SC/'
+    folder_path = system_path+'Results/FFR_test/'
 
     results,file_names = uf.format_results(folder_path)
     # uf.plot_freq(results, file_names, scenario = 'NordLink')
