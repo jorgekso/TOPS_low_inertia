@@ -34,14 +34,14 @@ if __name__ == '__main__':
 
     ps = func.init_n45(model_data=n45,display_pf=True,energy_mix= energy_mix, 
                        data_path= 'inertia_sim/N45_case_data_NordLink/',
-                       kinetic_energy_eps=300e3,virtual_gen=False,spinning_reserve=1.2)
+                       virtual_gen=False,spinning_reserve=1.2)
     # func.run_sensitivity(ps,'r',[3.5,3,2.5,2,1.5],foldername = 'r_sensitivity/')
     #func.gen_trip(ps=ps,fault_bus = '5230',fault_Sn = 792,fault_P = 792,kinetic_energy_eps = 300e3, 
     # folderandfilename = 'NordLink/test1',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False)
     # func.gen_trip(ps=ps,folderandfilename = '2030_scenario/test', fault_bus = '5230',fault_Sn = 1400,
     #               fault_P = 1400,event_flag=True, VSC=True, t_trip = 10.81)
 
-    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'Tuning/Nordlink GOV r=5 and PSS T=10 K=8 half PSS',
+    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'Base/NordLink outage 2023 v2',
                          link_name = 'NO_2-DE',t_trip=10.81,event_flag=True,t_end=50)
     # fault.HVDC_cable_trip(ps=ps,folderandfilename = 'Tuning/Nordlink GOV r=5 and PSS T=10 K=8 T_3=0.05 T_4=0.033',
     #                      link_name = 'NO_2-DE',t_trip=15.06,event_flag=True,t_end=70)
