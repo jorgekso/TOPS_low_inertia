@@ -205,5 +205,20 @@ class VSC_SI(DAEModel):
 
     def q_e(self, x, v):
         return self.s_e(x,v).imag
+    
+    def activate_FRR(self, P_FFR, idx):
+
+        if P_FFR > self.par['S_n'][idx]:
+            return('Not enough capacity for FFR')
+        
+  
+
+        self.par['p_ref'][idx] += P_FFR/self.par['S_n'][idx]
+
+        return f'FFR activated at {self.par["bus"]} with power injected = {P_FFR} MW'
+    
+    def freq_est(self, x):
+        X = self.local_view(x)
+        return X['x_pll']/(2*np.pi*self.sys_par['f_n'])
 
     # endregion

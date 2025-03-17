@@ -184,6 +184,7 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
                 # plt.plot(data['Seconds'], data['mean_freq'], label='Average frequency')
     #Add a dotted line at 49.1 Hz
     plt.axhline(y=49.1, color='r', linestyle='--', label='49.1 Hz')
+    plt.axhline(y=49.7, color='b', linestyle='--', label='49.1 Hz')
     plt.xlabel('Time [s]')
     plt.ylabel('Frequency [Hz]')
     plt.grid()  

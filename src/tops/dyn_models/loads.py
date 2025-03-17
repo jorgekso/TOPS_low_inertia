@@ -60,9 +60,13 @@ class Load(DAEModel):
         # MVA
         return self.s(x, v).imag*self.sys_par['s_n']
     
-    def activate_FFR(self, P_FFR):
+    def activate_FFR(self, P_FFR, idx):
         # MW
-        self.par['P'] -= P_FFR 
+        if P_FFR > self.par['P'][idx]:
+            return ('FFR power exceeds load')
+            
+
+        self.par['P'][idx] -= P_FFR 
         return (f'FFR activated at {self.par["bus"]} with power injected = {P_FFR} MW')
     
 

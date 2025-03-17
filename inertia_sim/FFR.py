@@ -1,30 +1,78 @@
 import numpy as np 
 
 
-def activate_FFR(ps, mean_freq,t, vsc_names,activated):
+# def activate_FFR(ps, mean_freq,t, vsc_names,activated):
+    
+#     threshold = 49.7
+   
+#     if (mean_freq <= threshold) and activated == False:
+#         activated = True
+#         print(f'FFR activated at t = {t}')
+#         P_FFR = 50 #Max FFR 50 MW
+
+#         for name in ps.vsc['VSC_SI'].par['name']:
+
+#             if name in vsc_names:
+#                 idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
+#                 p_pre = ps.vsc['VSC_SI'].par['p_ref'][idx]
+#                 p_new = p_pre + P_FFR/ps.vsc['VSC_SI'].par['S_n'][idx]
+
+#                 if p_new > ps.vsc['VSC_SI'].par['S_n'][idx]:
+#                     p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
+#                 ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
+
+#                 # print(f'FFR activated at {name}')
+#                 # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
+#     return activated       
+
+
+def activate_FFR(ps, local_freq, t, FFR_providers, activated, t_duration = 30):
     
     threshold = 49.7
-   
-    if (mean_freq <= threshold) and activated == False:
-        activated = True
-        print(f'FFR activated at t = {t}')
-        P_FFR = 50 #Max FFR 50 MW
+    P_FFR = 50 #MW
 
-        for name in ps.vsc['VSC_SI'].par['name']:
+    t_delay = 1.3 
+    t_FFR = (t + t_delay)
 
-            if name in vsc_names:
+
+    FFR_type = check_FFR_type(ps, FFR_providers)
+
+    if (local_freq <= threshold) and activated == False:
+        
+
+        if FFR_type == 'Load':
+            for name in FFR_providers:
+                idx = np.where(ps.loads['Load'].par['name'] == name)[0][0]
+                if (t_FFR <= t <= (t_FFR + t_duration)):
+                    activated = True
+                    ps.loads['Load'].activate_FFR(P_FFR, idx)
+                else:
+                    activated = False
+                    ps.loads['Load'].activate_FFR(-P_FFR, idx)
+            
+            
+        elif FFR_type == 'VSC':
+            for name in ps.vsc['VSC_SI'].par['name']:
                 idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
-                p_pre = ps.vsc['VSC_SI'].par['p_ref'][idx]
-                p_new = p_pre + P_FFR/ps.vsc['VSC_SI'].par['S_n'][idx]
+                if  t <= (t + t_duration):
+                    activated = True
+                    ps.vsc['VSC_SI'].activate_FFR(P_FFR, idx)
+                else:
+                    activated = False
+                    ps.vsc['VSC_SI'].activate_FFR(-P_FFR, idx)
+                
+    return activated
 
-                if p_new > ps.vsc['VSC_SI'].par['S_n'][idx]:
-                    p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
-                ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
 
-                # print(f'FFR activated at {name}')
-                # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
-    return activated       
 
+def check_FFR_type(ps, FFR_providers):
+
+    for provider in FFR_providers:
+        if provider in ps.loads['Load'].par['name']:
+            FFR_type = 'Load'
+        else:
+            FFR_type = 'VSC'
+    return FFR_type 
             
 
 if __name__ == '__main__':
@@ -62,11 +110,13 @@ if __name__ == '__main__':
     NO_4 = ['WG5420-1', 'WG5420-1']
     FI = ['WG7000-1', 'WG7000-2', 'WG7000-3', 'WG7100-1', 'WG71000-2', 'WG71000-3']
 
-    FFR_sources= ['WG7000-1']
+    Load = ['L3100-1']
+
+    FFR_sources= Load
 
     
-    HVDC_cable_trip(ps,folderandfilename = 'FFR_FI/50 MW',t=0,t_end=50,t_trip = 17.6,event_flag = True, 
-                    link_name = 'NO_2-DE',FFR = True, FFR_sources = FFR_sources)
+    HVDC_cable_trip(ps,folderandfilename = 'FFR_test/no_FFR_no_trip',t=0,t_end=50,t_trip = 17.6,event_flag = False, 
+                    link_name = 'NO_2-DE',FFR = False, FFR_sources = FFR_sources)
     # func.run_sensitivity(ps,'r',[3.5,3,2.5,2,1.5],foldername = 'r_sensitivity/')
     #func.gen_trip(ps=ps,fault_bus = '5230',fault_Sn = 792,fault_P = 792,kinetic_energy_eps = 300e3, 
     # folderandfilename = 'NordLink/test1',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False)
