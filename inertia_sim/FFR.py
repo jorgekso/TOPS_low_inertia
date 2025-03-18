@@ -1,31 +1,65 @@
 import numpy as np 
 
 
-def activate_FFR(ps, mean_freq,t, vsc_names,activated):
+# def activate_FFR(ps, mean_freq,t, vsc_names,activated):
     
-    threshold = 49.7
+#     threshold = 49.7
    
-    if (mean_freq <= threshold) and activated == False:
+#     if (mean_freq <= threshold) and activated == False:
+#         activated = True
+#         print(f'FFR activated at t = {t}')
+#         P_FFR = 50 #Max FFR 50 MW
+
+#         for name in ps.vsc['VSC_SI'].par['name']:
+
+#             if name in vsc_names:
+#                 idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
+#                 p_pre = ps.vsc['VSC_SI'].par['p_ref'][idx]
+#                 p_new = p_pre + P_FFR/ps.vsc['VSC_SI'].par['S_n'][idx]
+
+#                 if p_new > ps.vsc['VSC_SI'].par['S_n'][idx]:
+#                     p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
+#                 ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
+
+#                 # print(f'FFR activated at {name}')
+#                 # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
+#     return activated
+# 
+
+def activate_FFR(ps, local_freq, t, FFR_sources, activated, t_FFR):
+
+    threshold = 49.7
+    t_duration = 30
+    t_delay = 1.3
+
+    FFR_type = check_FFR_type(ps, FFR_sources)
+
+    if (local_freq <= threshold) and activated == False:
         activated = True
-        print(f'FFR activated at t = {t}')
-        P_FFR = 50 #Max FFR 50 MW
-
-        for name in ps.vsc['VSC_SI'].par['name']:
-
-            if name in vsc_names:
-                idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
-                p_pre = ps.vsc['VSC_SI'].par['p_ref'][idx]
-                p_new = p_pre + P_FFR/ps.vsc['VSC_SI'].par['S_n'][idx]
-
-                if p_new > ps.vsc['VSC_SI'].par['S_n'][idx]:
-                    p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
-                ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
-
-                # print(f'FFR activated at {name}')
-                # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
-    return activated       
-
+        t_FFR = t + t_delay
+        t_duration += t
+    
+    if activated == True:
+        if FFR_type == 'Load':
+            return None
+        elif FFR_type == 'VSC':
+            return None
+                
             
+
+
+
+def check_FFR_type(ps, FFR_providers):
+
+    for provider in FFR_providers:
+        if provider in ps.loads['Load'].par['name']:
+            FFR_type = 'Load'
+        else:
+            FFR_type = 'VSC'
+    return FFR_type  
+
+def round_timestep(value):
+    return round(value/0.005)*0.005       
 
 if __name__ == '__main__':
     

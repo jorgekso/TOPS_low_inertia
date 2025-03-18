@@ -262,6 +262,22 @@ def plot_gen_speed(results, file_names, gen_name=None):
     plt.ylabel('Speed [p.u.]')
     plt.grid()
     plt.legend()
+
+def plot_local_freq(results, file_names, load_name, gen_name,  mean_freq = False):
+    plt.figure()
+    it = 0
+    for res in results:
+        plt.plot(res['t'], np.array(res['freq_est'])[:, res['load_name'][0].index(load_name)], label=load_name+' ' + file_names[it].stem)
+    
+        if gen_name is not None:
+            plt.plot(res['t'], 50 +  50*np.array(res['gen_speed'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
+        it += 1
+    if mean_freq == True:
+        plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1),label = 'mean_freq')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Freq [Hz]')
+    plt.grid()
+    plt.legend()
     
 
 

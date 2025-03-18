@@ -205,5 +205,7 @@ class VSC_SI(DAEModel):
 
     def q_e(self, x, v):
         return self.s_e(x,v).imag
+    
+
 
     # endregion

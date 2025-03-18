@@ -21,10 +21,14 @@ if __name__ == '__main__':
         "figure.titlesize": 16     # Font size for figure title
     })
 
-    folder_path = system_path + 'Results/SC/'
+    folder_path = system_path + 'Results/local_freq/'
 
     results, file_names = uf.format_results(folder_path)
-    uf.plot_freq(results, file_names, scenario = 'NordLink')
+    uf.plot_freq(results, file_names)
+    uf.plot_local_freq(results, file_names, 'L3000-1','G3000-1')
+
+
+
     # uf.plot_freq(results, file_names)
     # results, file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)
