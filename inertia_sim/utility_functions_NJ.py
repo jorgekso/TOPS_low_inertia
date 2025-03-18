@@ -160,6 +160,10 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
         plt.figure()
         it = 0  
         for res in results:
+            # freq =[]
+            # for timestep in res['gen_speed']:
+            #     freq.append(50 + 50*timestep[-6])
+            # plt.plot(res['t'], freq, label = file_names[it].stem)
             plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1), label = file_names[it].stem)
             it += 1
 
@@ -263,5 +267,19 @@ def plot_gen_speed(results, file_names, gen_name=None):
     plt.grid()
     plt.legend()
     
+def plot_power_load(results, file_names, load_name=None):
+    plt.figure()
+    it = 0
+    for res in results:
+        if load_name is not None:
+                plt.plot(res['t'], np.array(res['load_P'])[:, res['load_name'][0].index(load_name)], label=load_name + ' ' + file_names[it].stem)
+                it += 1
+        else:
+            for load in res['load_name'][0]:
+                plt.plot(res['t'], np.array(res['load_P'])[:, res['load_name'][0].index(load)], label=load)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Power [MW]')
+    plt.grid()
+    plt.legend()
 
 

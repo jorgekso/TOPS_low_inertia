@@ -132,6 +132,9 @@ class DynamicLoad(DAEModel):
     def Q(self, x, v):
         # MVA
         return self.s(x, v).imag*self.sys_par['s_n']
+    
+    def v0(self,idx):
+        return self.v_0[idx]
 
 
 class DynamicLoadFiltered(DynamicLoad):

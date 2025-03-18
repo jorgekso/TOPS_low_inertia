@@ -4,7 +4,7 @@ if __name__ == '__main__':
     import fault_events as fault
     
     #iterates over the different kinetic energy scenarios
-    import tops.ps_models.n45_tuned as n45
+    import tops.ps_models.n45_2030 as n45
 
     #Kladd for energimix fordeling
     #Energy mix for different areas
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # func.gen_trip(ps=ps,folderandfilename = '2030_scenario/test', fault_bus = '5230',fault_Sn = 1400,
     #               fault_P = 1400,event_flag=True, VSC=True, t_trip = 10.81)
 
-    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'SC/SC in Norway',
-                            t_trip=10.81,event_flag=True,t_end=50)
+    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'FFR/test_FFR',
+                            t_trip=10.81,event_flag=True,t_end=50,FFR_sources=['L3000-1','L3000-2'])
     
 
