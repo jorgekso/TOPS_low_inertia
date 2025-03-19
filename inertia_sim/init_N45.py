@@ -87,28 +87,6 @@ def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fa
 
 
 
-    #------------------------------Updating the Power generation in the n45_with_controls model-----------------------------------
-    #To retrieve total specified power generation in an area
-    # Initialize a list to store specified power generation by area code
-    # PowerGen_by_area = {}
-    # # Iterate through the 'GEN' data and extract 'bus' and 'P' columns
-    # index_bus_name = model['generators']['GEN'][0].index('bus')
-    # index_gen = model['generators']['GEN'][0].index('name')
-    # index_P = model['generators']['GEN'][0].index('P')
-
-
-    # all_gen = set()
-    # for row in model['generators']['GEN'][1:]:
-    #     bus_name = row[index_bus_name]
-    #     gen_name = row[index_gen]
-    #     P_specified = row[index_P]
-    #     area = area_by_bus.get(bus_name)
-    #     if area not in PowerGen_by_area:
-    #         PowerGen_by_area[area] = 0
-    #     PowerGen_by_area[area] = PowerGen_by_area[area]
-    #     all_gen.add(gen_name)
-
-
     #------------------------------Updating the Power consumption in the n45_with_controls model-----------------------------------
     PowerCon_by_area = {}
     PowerExc_by_country = {} #Used for scaling when mulitple export/import power links between countries
