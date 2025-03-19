@@ -273,14 +273,14 @@ class DynamicLoad2(DAEModel):
         X = self.local_view(x)
         par = self.par
 
-        dX['x_est'][:] = 1/par['T_est']*(self.v_q(x,v))
+        dX['x_est'][:] = par['K_est']/par['T_est']*(self.v_q(x,v))
         dX['angle'][:] = X['x_est'] + par['K_est']*self.v_q(x,v)
         return  
     
     def freq_est(self, x, v):
         X = self.local_view(x)
-        freq = X['x']/(2*np.pi)
-        dX =  X['x'] + self.par['K_est']*self.v_q(x,v)
-        return 50 + dX/(2*np.pi)
+        freq = X['x_est']/(2*np.pi)
+        dX =  X['x_est'] + self.par['K_est']*self.v_q(x,v)
+        return 50 + dX/(2*np.pi), 50 + freq
 
     
