@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # func.gen_trip(ps=ps,folderandfilename = '2030_scenario/test', fault_bus = '5230',fault_Sn = 1400,
     #               fault_P = 1400,event_flag=True, VSC=True, t_trip = 10.81)
 
-    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'FFR/200MW_FFR',
-                            event_flag=True,FFR_sources=['L3000-1','L3000-2','L5230-1','L5310-1'])
+    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'FFR_v2/50MW_v2',
+                            event_flag=True, FFR_sources=['L3000-1'])
 
 

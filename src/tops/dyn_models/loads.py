@@ -182,7 +182,7 @@ class DynamicLoad2(DAEModel):
     'loads': {
             'DynamicLoad2': [
                 ['name',    'bus',   'P',    'Q',   'model', 'K_est', 'T_est'],
-                ['L3000-1', '3000',  1059,   422,   'Z',       1,       1    ]
+                ['L3000-1', '3000',  1059,   422,   'Z',       1,       0.1],    ]
             ],
         }
     '''
@@ -197,7 +197,7 @@ class DynamicLoad2(DAEModel):
         self.sys_par = sys_par  # {'s_n': 0, 'f_n': 50, 'bus_v_n': None}
 
     def input_list(self):
-        return ['g_setp', 'b_setp']
+        return ['g_setp', 'b_setp','t_ffr_start','t_ffr_end','P_ffr']
     
     def bus_ref_spec(self):
         return {'terminal': self.par['bus']}
@@ -215,6 +215,9 @@ class DynamicLoad2(DAEModel):
         y_load = 1/z_load
         self._input_values['g_setp'] = y_load.real
         self._input_values['b_setp'] = y_load.imag
+        self._input_values['t_ffr_start'] = 0
+        self._input_values['t_ffr_end'] = 0
+        self._input_values['P_ffr'] = 0
 
         V_n = self.sys_par['bus_v_n'][self.bus_idx['terminal']]
         self.I_n = self.sys_par['s_n']/(np.sqrt(3)*V_n)
@@ -279,8 +282,28 @@ class DynamicLoad2(DAEModel):
     
     def freq_est(self, x, v):
         X = self.local_view(x)
-        freq = X['x']/(2*np.pi)
-        dX =  X['x'] + self.par['K_est']*self.v_q(x,v)
-        return 50 + dX/(2*np.pi)
+        freq = X['x_est']/(2*np.pi)
+        return 50 + freq
 
-    
+    def FFR(self, x, v,t,index):
+        inputs = self._input_values
+        par = self.par
+        if inputs['t_ffr_start'][index] <= t <= inputs['t_ffr_end'][index] and t > 0:
+            P = (par['P'][index]-inputs['P_ffr'][index])/self.sys_par['s_n']
+            Q = par['Q'][index]/self.sys_par['s_n']
+            z = np.conj(abs(self.v_0[index])**2/(P+1j*Q))
+            y = 1/z
+            g = y.real
+            b = y.imag
+            self._input_values['g_setp'][index] = g
+            self._input_values['b_setp'][index] = b
+        else:
+            P = par['P'][index]/self.sys_par['s_n']
+            Q = par['Q'][index]/self.sys_par['s_n']
+            z = np.conj(abs(self.v_0[index])**2/(P+1j*Q))
+            y = 1/z
+            g = y.real
+            b = y.imag
+            self._input_values['g_setp'][index] = g
+            self._input_values['b_setp'][index] = b
+        

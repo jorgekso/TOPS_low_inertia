@@ -62,6 +62,23 @@ def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
     return activated,t_FFR,t_end_FFR
 
 
+
+def activate_FFR_load(ps, ffr_names,ffr_activated_list,x,v,t):
+    for load_name in ps.loads['DynamicLoad2'].par['name']:
+        if load_name in ffr_names and load_name not in ffr_activated_list:
+            index = np.where(ps.loads['DynamicLoad2'].par['name'] == load_name)[0]
+            if(ps.loads['DynamicLoad2'].freq_est(x,v)[index] < 49.7):
+                ps.loads['DynamicLoad2'].set_input('t_ffr_start', t+1.2, index)
+                ps.loads['DynamicLoad2'].set_input('t_ffr_end', t+1.2+30, index)
+                ps.loads['DynamicLoad2'].set_input('P_ffr', 50, index)
+                ffr_activated_list.append(load_name)
+    for load_name in ps.loads['DynamicLoad2'].par['name']:
+        if load_name in ffr_activated_list:
+            index = np.where(ps.loads['DynamicLoad2'].par['name'] == load_name)[0]
+            ps.loads['DynamicLoad2'].FFR(x,v,t,index)
+                
+
+
 def check_FFR_source(ps, FFR_sources):
     for source in FFR_sources:
         if source in ps.vsc['VSC_SI'].par['name']:

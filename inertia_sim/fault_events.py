@@ -15,7 +15,7 @@ import utility_functions_NJ as uf
 import numpy as np 
 
 
-from FFR import activate_FFR
+from FFR import activate_FFR,activate_FFR_load
 
 
 def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,
@@ -136,7 +136,12 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
     '''
     if FFR_sources is not None:
         model = ps.model.copy()
-        model['loads'] = {'DynamicLoad': model['loads']['Load']}
+        loads = model['loads']['Load']
+        loads[0].extend(['K_est', 'T_est'])
+
+        for row in loads[1:]:
+            row.extend([5, 0.1])
+        model['loads'] = {'DynamicLoad2': loads}
         ps = dps.PowerSystemModel(model=model)
 
     ps.power_flow()
@@ -158,6 +163,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
     print(max(abs(ps.state_derivatives(0, ps.x_0, ps.v_0))))
 
     FFR_activated = False
+    FFR_activated_list = []
     t_FFR = 0
     t_end_FFR = 0
        
@@ -179,8 +185,9 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
 
 
         if FFR_sources is not None:
-            mean_freq = 50 + 50*np.mean(ps.gen['GEN'].speed(x,v))
-            FFR_activated,t_FFR,t_end_FFR = activate_FFR(ps, mean_freq,t, FFR_sources, FFR_activated,v,t_FFR,t_end_FFR)
+            # mean_freq = 50 + 50*np.mean(ps.gen['GEN'].speed(x,v))
+            # FFR_activated,t_FFR,t_end_FFR = activate_FFR(ps, mean_freq,t, FFR_sources, FFR_activated,v,t_FFR,t_end_FFR)
+            activate_FFR_load(ps, FFR_sources,FFR_activated_list,x,v,t)
 
 
 
@@ -191,15 +198,15 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
         res['gen_I'].append(ps.gen['GEN'].I(x, v).copy())
         res['gen_P'].append(ps.gen['GEN'].P_e(x, v).copy())
         if FFR_sources is not None:
-            res['load_P'].append(ps.loads['DynamicLoad'].P(x, v).copy())
-            res['load_Q'].append(ps.loads['DynamicLoad'].Q(x, v).copy())
+            res['load_P'].append(ps.loads['DynamicLoad2'].P(x, v).copy())
+            res['load_Q'].append(ps.loads['DynamicLoad2'].Q(x, v).copy())
         else:
             res['load_P'].append(ps.loads['Load'].P(x, v).copy())
             res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
         res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
         res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
     if FFR_sources is not None:
-        res['load_name'].append(ps.loads['DynamicLoad'].par['name'])
+        res['load_name'].append(ps.loads['DynamicLoad2'].par['name'])
     else:
         res['load_name'].append(ps.loads['Load'].par['name'])
     res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
