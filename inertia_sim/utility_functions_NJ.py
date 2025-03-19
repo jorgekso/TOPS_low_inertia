@@ -324,3 +324,22 @@ def plot_local_freq(results, file_names, load_name, gen_name,  mean_freq = False
     plt.ylabel('Freq [Hz]')
     plt.grid()
     plt.legend()
+
+
+def plot_local_freq_test(results, file_names, load_name, gen_name,  mean_freq = False):
+    plt.figure()
+    it = 0
+    for res in results:
+        #plt.plot(res['t'], np.array(res['freq_est_omega'])[:, res['load_name'][0].index(load_name)], label='omega ' + load_name+' ' + file_names[it].stem)
+        plt.plot(res['t'], np.array(res['freq_est_delta_omega'])[:, res['load_name'][0].index(load_name)], label='delta omega ' + load_name+' ' + file_names[it].stem)
+        it += 1
+    if gen_name is not None:
+        res = results[0]
+        plt.plot(res['t'], 50 +  50*np.array(res['gen_speed'])[:, res['gen_name'][0].index(gen_name)], label=gen_name)
+        
+    if mean_freq == True:
+        plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1),label = 'mean_freq')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Freq [Hz]')
+    plt.grid()
+    plt.legend()

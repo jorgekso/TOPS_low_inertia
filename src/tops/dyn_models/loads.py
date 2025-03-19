@@ -276,7 +276,7 @@ class DynamicLoad2(DAEModel):
         X = self.local_view(x)
         par = self.par
 
-        dX['x_est'][:] = 1/par['T_est']*(self.v_q(x,v))
+        dX['x_est'][:] = par['K_est']/par['T_est']*(self.v_q(x,v))
         dX['angle'][:] = X['x_est'] + par['K_est']*self.v_q(x,v)
         return  
     
