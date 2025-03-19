@@ -13,7 +13,7 @@ import tops.ps_models.n45_tuned as n45
 
 if __name__ == '__main__':
 
-    folderandfilename = 'local_freq/test1'
+    folderandfilename = 'local_freq_tuning/K_est = 5'
     t_trip=10.81
     event_flag=True
     t_end=50
@@ -72,22 +72,32 @@ if __name__ == '__main__':
     print(max(abs(ps.state_derivatives(0, ps.x_0, ps.v_0))))
 
        
+    sc_bus_idx = 0
+    for gen in ps.gen['GEN'].par['name']:
+        if gen == 'G3245-1':
+            sc_bus_idx = np.where(ps.gen['GEN'].par['name'] == gen)[0][0]
+            break
     
     while t < t_end:
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
 
-        if t > t_trip and event_flag:
-            event_flag = False
-            #find the index of the vsc corresponding to the name load 
-            #ps.vsc['VSC_SI'].par['name'] is an ndarray
-            index_vsc = np.where(ps.vsc['VSC_SI'].par['name'] == link_name)[0]
-            ps.vsc['VSC_SI'].set_input('p_ref', 0,index_vsc)
+        # if t > t_trip and event_flag:
+        #     event_flag = False
+        #     #find the index of the vsc corresponding to the name load 
+        #     #ps.vsc['VSC_SI'].par['name'] is an ndarray
+        #     index_vsc = np.where(ps.vsc['VSC_SI'].par['name'] == link_name)[0]
+        #     ps.vsc['VSC_SI'].set_input('p_ref', 0,index_vsc)
+
+        if t >= 10 and t <= 10.5:
+            ps.y_bus_red_mod[(sc_bus_idx,) * 2] = 1e6
+        else:
+            ps.y_bus_red_mod[(sc_bus_idx,) * 2] = 0
         result = sol.step()
         x = sol.y
         v = sol.v
         t = sol.t
         
-
+        omega, delta_omega = ps.loads['DynamicLoad2'].freq_est(x, v)
 
         dx = ps.ode_fun(0, ps.x_0)
         res['t'].append(t)
@@ -98,7 +108,8 @@ if __name__ == '__main__':
         res['load_P'].append(ps.loads['DynamicLoad2'].P(x, v).copy())
         res['load_Q'].append(ps.loads['DynamicLoad2'].Q(x, v).copy())
         res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
-        res['freq_est'].append(ps.loads['DynamicLoad2'].freq_est(x, v).copy())
+        res['freq_est_omega'].append(omega)
+        res['freq_est_delta_omega'].append(delta_omega)
         res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
     res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
     res['gen_name'].append(ps.gen['GEN'].par['name'])
