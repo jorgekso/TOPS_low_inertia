@@ -115,7 +115,7 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
 
-def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag = True, link_name = 'NO_2-DE', FFR = False, FFR_sources = None):
+def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag = True, link_name = 'NO_2-DE', FFR = False, FFR_sources = None):
     ''''
     Simulates a trip of a HVDC cable in the Nordic 45 system.
     Parameters:
@@ -134,14 +134,17 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
     line : string
         The name of the line that should trip.
     '''
-    
+    if FFR_sources is not None:
+        model = ps.model.copy()
+        model['loads'] = {'DynamicLoad': model['loads']['Load']}
+        ps = dps.PowerSystemModel(model=model)
+
     ps.power_flow()
     ps.init_dyn_sim()
     x0 = ps.x0.copy()
     v0 = ps.v0.copy()
 
-
-
+    
 
     x_0 = ps.x_0.copy()
 
@@ -155,6 +158,8 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
     print(max(abs(ps.state_derivatives(0, ps.x_0, ps.v_0))))
 
     FFR_activated = False
+    t_FFR = 0
+    t_end_FFR = 0
        
     
     while t < t_end:
@@ -173,9 +178,10 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
         
 
 
-        if FFR == True:
+        if FFR_sources is not None:
             mean_freq = 50 + 50*np.mean(ps.gen['GEN'].speed(x,v))
-            FFR_activated = activate_FFR(ps, mean_freq,t, FFR_sources, FFR_activated)
+            FFR_activated,t_FFR,t_end_FFR = activate_FFR(ps, mean_freq,t, FFR_sources, FFR_activated,v,t_FFR,t_end_FFR)
+
 
 
         dx = ps.ode_fun(0, ps.x_0)
@@ -184,10 +190,18 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag =
         res['v'].append(v.copy())
         res['gen_I'].append(ps.gen['GEN'].I(x, v).copy())
         res['gen_P'].append(ps.gen['GEN'].P_e(x, v).copy())
-        res['load_P'].append(ps.loads['Load'].P(x, v).copy())
-        res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
+        if FFR_sources is not None:
+            res['load_P'].append(ps.loads['DynamicLoad'].P(x, v).copy())
+            res['load_Q'].append(ps.loads['DynamicLoad'].Q(x, v).copy())
+        else:
+            res['load_P'].append(ps.loads['Load'].P(x, v).copy())
+            res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
         res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
         res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
+    if FFR_sources is not None:
+        res['load_name'].append(ps.loads['DynamicLoad'].par['name'])
+    else:
+        res['load_name'].append(ps.loads['Load'].par['name'])
     res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
     res['gen_name'].append(ps.gen['GEN'].par['name'])
     res['bus_names'].append(ps.buses['name'])

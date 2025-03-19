@@ -160,6 +160,10 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
         plt.figure()
         it = 0  
         for res in results:
+            # freq =[]
+            # for timestep in res['gen_speed']:
+            #     freq.append(50 + 50*timestep[-6])
+            # plt.plot(res['t'], freq, label = file_names[it].stem)
             plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1), label = file_names[it].stem)
             it += 1
 
@@ -263,5 +267,43 @@ def plot_gen_speed(results, file_names, gen_name=None):
     plt.grid()
     plt.legend()
     
+def plot_power_load(results, file_names, load_name=None):
+    plt.figure()
+    it = 0
+    for res in results:
+        if load_name is not None:
+                plt.plot(res['t'], np.array(res['load_P'])[:, res['load_name'][0].index(load_name)], label=load_name + ' ' + file_names[it].stem)
+                it += 1
+        else:
+            for load in res['load_name'][0]:
+                plt.plot(res['t'], np.array(res['load_P'])[:, res['load_name'][0].index(load)], label=load)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Power [MW]')
+    plt.grid()
+    plt.legend()
+
+def plot_voltage(results, file_names, bus_name=None):
+    '''
+    Initialization of the plot
+    uf.plot_voltage(results, file_names, complex(5310,0))
+    This is for the bus 5310 as the bus_name is complex for whatever reason
+    '''
+    plt.figure()
+    it = 0
+    for res in results:
+        if bus_name is not None:
+            #absolute value of every entry of nested list res['v] at the index of bus_name
+            v = np.array(res['v'])[:, res['bus_names'][0].index(bus_name)]
+            #taking the absolute value of the complex number
+            v = [abs(complex(x)) for x in v]
 
 
+            plt.plot(res['t'], v, label=str(bus_name) + ' ' + file_names[it].stem)
+            it += 1
+        else:
+            for bus in res['bus_names'][0]:
+                plt.plot(res['t'], np.array(res['v'])[:, res['bus_names'][0].index(bus)], label=bus)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Voltage [p.u.]')
+    plt.grid()
+    plt.legend()
