@@ -3,7 +3,7 @@ if __name__ == '__main__':
     import init_N45 as func
     import fault_events as fault
     #iterates over the different kinetic energy scenarios
-    import tops.ps_models.n45_tuned as n45
+    import tops.ps_models.n45_2030 as n45
 
     #Kladd for energimix fordeling
     #Energy mix for different areas

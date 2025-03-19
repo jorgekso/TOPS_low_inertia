@@ -19,7 +19,7 @@ def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
                 v0 = ps.loads['DynamicLoad'].v0(index)
                 P = (ps.loads['DynamicLoad'].par['P'][index]-P_FFR)/ps.loads['DynamicLoad'].sys_par['s_n']
                 Q = ps.loads['DynamicLoad'].par['Q'][index]/ps.loads['DynamicLoad'].sys_par['s_n']
-                z = np.conj(v0/(P+1j*Q))
+                z = np.conj(1/(P+1j*Q))
                 y = 1/z
                 g = y.real
                 b = y.imag
@@ -32,7 +32,7 @@ def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
                 v0 = ps.loads['DynamicLoad'].v0(index)
                 P = ps.loads['DynamicLoad'].par['P'][index]/ps.loads['DynamicLoad'].sys_par['s_n']
                 Q = ps.loads['DynamicLoad'].par['Q'][index]/ps.loads['DynamicLoad'].sys_par['s_n']
-                z = np.conj(v0/(P+1j*Q))
+                z = np.conj(1/(P+1j*Q))
                 y = 1/z
                 g = y.real
                 b = y.imag
@@ -48,7 +48,7 @@ def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
 if __name__ == '__main__':
     
     import init_N45 as func
-    import tops.ps_models.n45_with_controls_HVDC as n45
+    import tops.ps_models.n45_2030 as n45
 
     from inertia_sim.fault_events import gen_trip, HVDC_cable_trip
 

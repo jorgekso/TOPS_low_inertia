@@ -292,6 +292,7 @@ def plot_voltage(results, file_names, bus_name=None):
     it = 0
     for res in results:
         if bus_name is not None:
+            bus_name = complex(bus_name)
             #absolute value of every entry of nested list res['v] at the index of bus_name
             v = np.array(res['v'])[:, res['bus_names'][0].index(bus_name)]
             #taking the absolute value of the complex number

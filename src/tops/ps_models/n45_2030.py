@@ -1,7 +1,7 @@
 # Updated N45 version by Nora Lillelien and Jørgen Sørhaug. Adapted from Martin Teignes version of N45.
 # This version includes HVDC links and wind power as VSC.
 # All generator values and wind generator values are updated through a different script and should not be taken at face value.
-# This version of the script is a test for different GOV and PSS tuning variables.
+# This script is a work script where K_SI among other things is updated to produce different results
 def load():
     return {
         'base_mva': 1000,

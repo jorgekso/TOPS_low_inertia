@@ -19,11 +19,11 @@ import pandas as pd
 import numpy as np 
 
 # Power system model 
-import tops.ps_models.n45_with_controls_HVDC as model_data
 
 
 
-def init_n45(model_data, data_path, display_pf,energy_mix, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = None,virtual_gen = True, spinning_reserve = 1.2):
+
+def init_n45(model_data, data_path,energy_mix, display_pf=False, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = None,virtual_gen = False, spinning_reserve = 1.2):
 
     """
     Initializes the Nordic 45 system from "N45_case_data" folder with the specified fault bus, fault Sn, fault P and kinetic energy of the EPS.

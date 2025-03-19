@@ -1,5 +1,5 @@
 if __name__ == '__main__':
-    #This code is used to generate a trip of a 1400MW generator in the 3359 bus of the Nordic 45 system.
+    #This code is used to generate a trip of a 1400MW HVDC cable in the 5230 bus of the Nordic 45 system.
     import init_N45 as init
     import fault_events as fault
     
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # func.gen_trip(ps=ps,folderandfilename = '2030_scenario/test', fault_bus = '5230',fault_Sn = 1400,
     #               fault_P = 1400,event_flag=True, VSC=True, t_trip = 10.81)
 
-    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'FFR/200MW_FFR',
-                            event_flag=True,FFR_sources=['L3000-1','L3000-2','L5230-1','L5310-1'])
+    fault.HVDC_cable_trip(ps=ps,folderandfilename = 'FFR/200MW',
+                            event_flag=True,FFR_sources=['L3000-1','L3000-2','L5120-1','L7100-1'])
 
 
