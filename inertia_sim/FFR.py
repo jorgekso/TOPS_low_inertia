@@ -1,29 +1,47 @@
 import numpy as np 
 
 
-def activate_FFR(ps, mean_freq,t, vsc_names,activated):
+def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
     
     threshold = 49.7
+    t_delay = 1.2
    
     if (mean_freq <= threshold) and activated == False:
         activated = True
-        print(f'FFR activated at t = {t}')
-        P_FFR = 50 #Max FFR 50 MW
+        t_FFR = t+t_delay
+        t_end_FFR = t_FFR+30
+        print(f'FFR detected at t = {t}')
+    P_FFR = 50 #Max FFR 50 MW
+    if activated == True and t_end_FFR >= t >= t_FFR:
+        for load_name in ps.loads['DynamicLoad'].par['name']:
+            if load_name in ffr_names:
+                index = np.where(ps.loads['DynamicLoad'].par['name'] == load_name)[0]
+                v0 = ps.loads['DynamicLoad'].v0(index)
+                P = (ps.loads['DynamicLoad'].par['P'][index]-P_FFR)/ps.loads['DynamicLoad'].sys_par['s_n']
+                Q = ps.loads['DynamicLoad'].par['Q'][index]/ps.loads['DynamicLoad'].sys_par['s_n']
+                z = np.conj(v0/(P+1j*Q))
+                y = 1/z
+                g = y.real
+                b = y.imag
+                ps.loads['DynamicLoad'].set_input('g_setp', g, index)
+                ps.loads['DynamicLoad'].set_input('b_setp', b, index)
+    else:
+        for load_name in ps.loads['DynamicLoad'].par['name']:
+            if load_name in ffr_names:
+                index = np.where(ps.loads['DynamicLoad'].par['name'] == load_name)[0]
+                v0 = ps.loads['DynamicLoad'].v0(index)
+                P = ps.loads['DynamicLoad'].par['P'][index]/ps.loads['DynamicLoad'].sys_par['s_n']
+                Q = ps.loads['DynamicLoad'].par['Q'][index]/ps.loads['DynamicLoad'].sys_par['s_n']
+                z = np.conj(v0/(P+1j*Q))
+                y = 1/z
+                g = y.real
+                b = y.imag
+                ps.loads['DynamicLoad'].set_input('g_setp', g, index)
+                ps.loads['DynamicLoad'].set_input('b_setp', b, index)
 
-        for name in ps.vsc['VSC_SI'].par['name']:
 
-            if name in vsc_names:
-                idx = np.where(ps.vsc['VSC_SI'].par['name'] == name)[0][0]
-                p_pre = ps.vsc['VSC_SI'].par['p_ref'][idx]
-                p_new = p_pre + P_FFR/ps.vsc['VSC_SI'].par['S_n'][idx]
-
-                if p_new > ps.vsc['VSC_SI'].par['S_n'][idx]:
-                    p_new = ps.vsc['VSC_SI'].par['S_n'][idx]
-                ps.vsc['VSC_SI'].set_input('p_ref', p_new, idx)
-
-                # print(f'FFR activated at {name}')
-                # print(f'power injected = {P_FFR + p_pre*ps.vsc['VSC_SI'].par['S_n'][idx]} MW')
-    return activated       
+        
+    return activated,t_FFR,t_end_FFR     
 
             
 
