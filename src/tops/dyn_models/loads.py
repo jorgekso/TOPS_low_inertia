@@ -168,3 +168,116 @@ class DynamicLoadFiltered(DynamicLoad):
 
         V_n = self.sys_par['bus_v_n'][self.bus_idx['terminal']]
         self.I_n = self.sys_par['s_n']/(np.sqrt(3)*V_n)
+
+
+class DynamicLoad2(DAEModel):
+    '''
+    Dynamic load model with estimation for local frequency 
+    Created as a part of the master thesis of N.Lillelien and J.Sørhaug
+
+    Instantiate:
+    'loads': {
+            'DynamicLoad2': [
+                ['name',    'bus',   'P',    'Q',   'model', 'K_est', 'T_est'],
+                ['L3000-1', '3000',  1059,   422,   'Z',       1,       1    ]
+            ],
+        }
+    '''
+    def __init__(self, data, sys_par, **kwargs):
+        super().__init__(data, sys_par, **kwargs)
+        self.data = data
+        self.par = data
+        self.n_units = len(data)
+
+        self.bus_idx = np.array(np.zeros(self.n_units), dtype=[(key, int) for key in self.bus_ref_spec().keys()])
+        self.bus_idx_red = np.array(np.zeros(self.n_units), dtype=[(key, int) for key in self.bus_ref_spec().keys()])
+        self.sys_par = sys_par  # {'s_n': 0, 'f_n': 50, 'bus_v_n': None}
+
+    def input_list(self):
+        return ['g_setp', 'b_setp']
+    
+    def bus_ref_spec(self):
+        return {'terminal': self.par['bus']}
+
+    def reduced_system(self):
+        return self.par['bus']
+
+    def load_flow_pq(self):
+        return self.bus_idx['terminal'], self.par['P'], self.par['Q']
+
+    def init_from_load_flow(self, x_0, v_0, S):
+        self.v_0 = v_0[self.bus_idx['terminal']]
+        s_load = (self.par['P'] + 1j * self.par['Q']) / self.sys_par['s_n']
+        z_load = np.conj(abs(self.v_0) ** 2 / s_load)
+        y_load = 1/z_load
+        self._input_values['g_setp'] = y_load.real
+        self._input_values['b_setp'] = y_load.imag
+
+        V_n = self.sys_par['bus_v_n'][self.bus_idx['terminal']]
+        self.I_n = self.sys_par['s_n']/(np.sqrt(3)*V_n)
+
+    def g_load(self, x, v):
+        return self.g_setp(x, v)
+
+    def b_load(self, x, v):
+        return self.b_setp(x, v)
+
+    def y_load(self, x, v):
+        return self.g_load(x, v) + 1j*self.b_load(x, v)
+
+    def dyn_var_adm(self, x, v):
+        return self.y_load(x, v), (self.bus_idx_red['terminal'],)*2
+
+    def i(self, x, v):
+        return v[self.bus_idx_red['terminal']]*self.y_load(x, v)
+    
+    def I(self, x, v):
+        return self.i(x, v)*self.I_n
+    
+    def s(self, x, v):
+        return v[self.bus_idx_red['terminal']]*np.conj(self.i(x, v))
+
+    def p(self, x, v):
+        # p.u. system base
+        return self.s(x, v).real
+
+    def q(self, x, v):
+        # p.u. system base
+        return self.s(x, v).imag
+    
+    def P(self, x, v):
+        # MW
+        return self.s(x, v).real*self.sys_par['s_n']
+
+    def Q(self, x, v):
+        # MVA
+        return self.s(x, v).imag*self.sys_par['s_n']
+    
+    def v_t(self, x, v):
+        # p.u.
+        return v[self.bus_idx_red['terminal']]
+    
+    def v_q(self, x, v):
+        # p.u.
+        return (self.v_t(x,v)*np.exp(-1j*self.local_view(x)['angle'])).imag
+    
+    def state_list(self):
+        return ['x_est', 'angle']
+    
+    def state_derivatives(self, dx, x, v):
+        
+        dX = self.local_view(dx)
+        X = self.local_view(x)
+        par = self.par
+
+        dX['x'][:] = 1/par['T_est']*(self.v_q(x,v))
+        dX['angle'][:] = X['x_est'] + par['K_est']*self.v_q(x,v)
+        return  
+    
+    def freq_est(self, x, v):
+        X = self.local_view(x)
+        freq = X['x']/(2*np.pi)
+        dX =  X['x'] + self.par['K_est']*self.v_q(x,v)
+        return 50 + dX/(2*np.pi)
+
+    
