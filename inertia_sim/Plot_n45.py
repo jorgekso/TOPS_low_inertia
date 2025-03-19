@@ -21,12 +21,13 @@ if __name__ == '__main__':
         "figure.titlesize": 16     # Font size for figure title
     })
 
-    folder_path = system_path + 'Results/Spinning reserves/'
+    folder_path = system_path + 'Results/FFR/'
 
     results, file_names = uf.format_results(folder_path)
     # uf.plot_freq(results, file_names, scenario = 'NordLink')
     uf.plot_freq(results, file_names)
-    # uf.plot_power_load(results, file_names,'L3000-1')
+    uf.plot_power_load(results, file_names,'L5310-1')
+    uf.plot_voltage(results, file_names, complex(5310,0))
     # results, file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)
     # uf.plot_gen(results, file_names)

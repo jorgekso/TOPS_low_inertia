@@ -282,4 +282,28 @@ def plot_power_load(results, file_names, load_name=None):
     plt.grid()
     plt.legend()
 
+def plot_voltage(results, file_names, bus_name=None):
+    '''
+    Initialization of the plot
+    uf.plot_voltage(results, file_names, complex(5310,0))
+    This is for the bus 5310 as the bus_name is complex for whatever reason
+    '''
+    plt.figure()
+    it = 0
+    for res in results:
+        if bus_name is not None:
+            #absolute value of every entry of nested list res['v] at the index of bus_name
+            v = np.array(res['v'])[:, res['bus_names'][0].index(bus_name)]
+            #taking the absolute value of the complex number
+            v = [abs(complex(x)) for x in v]
 
+
+            plt.plot(res['t'], v, label=str(bus_name) + ' ' + file_names[it].stem)
+            it += 1
+        else:
+            for bus in res['bus_names'][0]:
+                plt.plot(res['t'], np.array(res['v'])[:, res['bus_names'][0].index(bus)], label=bus)
+    plt.xlabel('Time [s]')
+    plt.ylabel('Voltage [p.u.]')
+    plt.grid()
+    plt.legend()

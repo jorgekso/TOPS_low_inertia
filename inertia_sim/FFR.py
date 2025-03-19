@@ -13,7 +13,7 @@ def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
         print(f'FFR detected at t = {t}')
     P_FFR = 50 #Max FFR 50 MW
     if activated == True and t_end_FFR >= t >= t_FFR:
-        for load_name in ps.loads['DynamicLoad'].par[0]:
+        for load_name in ps.loads['DynamicLoad'].par['name']:
             if load_name in ffr_names:
                 index = np.where(ps.loads['DynamicLoad'].par['name'] == load_name)[0]
                 v0 = ps.loads['DynamicLoad'].v0(index)
@@ -26,7 +26,7 @@ def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
                 ps.loads['DynamicLoad'].set_input('g_setp', g, index)
                 ps.loads['DynamicLoad'].set_input('b_setp', b, index)
     else:
-        for load_name in ps.loads['DynamicLoad'].par[0]:
+        for load_name in ps.loads['DynamicLoad'].par['name']:
             if load_name in ffr_names:
                 index = np.where(ps.loads['DynamicLoad'].par['name'] == load_name)[0]
                 v0 = ps.loads['DynamicLoad'].v0(index)

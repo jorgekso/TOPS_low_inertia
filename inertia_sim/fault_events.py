@@ -115,7 +115,7 @@ def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')
 
 
-def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 17.6,event_flag = True, link_name = 'NO_2-DE', FFR = False, FFR_sources = None):
+def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag = True, link_name = 'NO_2-DE', FFR = False, FFR_sources = None):
     ''''
     Simulates a trip of a HVDC cable in the Nordic 45 system.
     Parameters:
