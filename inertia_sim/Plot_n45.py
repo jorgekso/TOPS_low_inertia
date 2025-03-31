@@ -12,7 +12,7 @@ if __name__ == '__main__':
     plt.rcParams.update({
         "font.family": "Dejavu serif",
         "font.serif": ["Computer Modern Roman"],
-        "font.size": 12,           # Default font size
+        "font.size": 72,           # Default font size
         "axes.titlesize": 14,      # Font size for axes titles
         "axes.labelsize": 14,      # Font size for x and y labels
         "xtick.labelsize": 12,     # Font size for x tick labels
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # uf.plot_freq(results, file_names, scenario = 'NordLink')
     uf.plot_freq(results, file_names)
     uf.plot_power_load(results, file_names,'L3000-1')
-    # uf.plot_voltage(results, file_names, complex(5310,0))
+    # uf.plot_voltage(results, file_names, complex(3115,0))
     # results, file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)
     # uf.plot_gen(results, file_names)

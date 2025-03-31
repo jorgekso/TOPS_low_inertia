@@ -164,7 +164,10 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
             # for timestep in res['gen_speed']:
             #     freq.append(50 + 50*timestep[-6])
             # plt.plot(res['t'], freq, label = file_names[it].stem)
-            plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1), label = file_names[it].stem)
+            if file_names[it].stem[0] == '0':
+                plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1), label = file_names[it].stem[1:])
+            else:
+                plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1), label = file_names[it].stem)
             it += 1
 
         if scenario == 'NordLink':
@@ -186,8 +189,10 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
                 # plt.plot(data['Seconds'], data['Frequency: NO2'], label='NO2')
                 # plt.plot(data['Seconds'], data['Frequency: NO3'], label='NO3')
                 # plt.plot(data['Seconds'], data['mean_freq'], label='Average frequency')
-    #Add a dotted line at 49.1 Hz
-    plt.axhline(y=49.1, color='r', linestyle='--', label='49.1 Hz')
+    # #Add a dotted line at 49.1 Hz
+    # plt.axhline(y=49.1, color='r', linestyle='--', label='49.1 Hz')
+
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.ylabel('Frequency [Hz]')
     plt.grid()  
@@ -230,9 +235,12 @@ def plot_power_VSC(results, file_names, VSC_name):
         else:
             index += 1
     it = 0
+    
     for res in results:
-        
-        plt.plot(res['t'], ([row[index] for row in res['VSC_p']]), label = file_names[it].stem)# label = res['VSC_name'][0][index]+' '+file_names[i].stem)
+        #multpliying be VSC Sn to get the power in MW
+        power = np.array(res['VSC_p'])[:, index] * res['VSC_Sn'][0][index]
+        plt.plot(res['t'], power, label = file_names[it].stem)
+        # plt.plot(res['t'], ([row[index] for row in res['VSC_p']]), label = file_names[it].stem)# label = res['VSC_name'][0][index]+' '+file_names[i].stem)
         it += 1
     plt.xlabel('Time [s]')
     plt.legend()

@@ -220,7 +220,7 @@ def init_n45(model_data, data_path, energy_mix,display_pf=False, fault_bus = '70
             power = ENTSOE_gen_data['Power generation'].loc[area] * energy_mix[area]['Wind']/len(wind_gen_by_area.get(area))
             # if power > row[2]:
             #     ValueError(f"Power generation for {name} in {area} is larger than the nominal power")
-            # row[2] = power*1.2
+            row[2] = power*1.2
             row[3] = power/row[2]
             row[4] = 0.0
             
