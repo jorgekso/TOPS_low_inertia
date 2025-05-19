@@ -1,3 +1,11 @@
+'''
+This script is used for simulating different fault events in the Nordic 45 system.
+The HVDC cable trip is used to simulate a trip of the NorLink cable, which leads to a fault of 1675MW.
+The generator trip is used to simulate a trip of a generator in the Nordic 45 system, and made by Eirik Stenshorne Sanden. 
+The gen_trip function is a little bit modified to work with the Nordic 45 system, but might have bugs as it was not used a lot.
+
+''' 
+
 import sys
 from collections import defaultdict
 import time
@@ -15,7 +23,7 @@ import utility_functions_NJ as uf
 import numpy as np 
 
 
-from FFR import activate_FFR,activate_FFR_load
+from FFR import activate_FFR,activate_FFR_load,activate_FFR_vsc
 
 
 def gen_trip(ps,folderandfilename, fault_bus = '7000',fault_Sn = 1400,fault_P = 1400,kinetic_energy_eps = 300e3,
@@ -144,7 +152,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
         model['loads'] = {'DynamicLoad2': loads}
         ps = dps.PowerSystemModel(model=model)
 
-    ps.power_flow()
+    ps.power_flow(print_output=True)
     ps.init_dyn_sim()
     x0 = ps.x0.copy()
     v0 = ps.v0.copy()
@@ -170,13 +178,13 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
     
     while t < t_end:
         sys.stdout.write("\r%d%%" % (t/(t_end)*100))
-
+        
         if t > t_trip and event_flag:
             event_flag = False
             #find the index of the vsc corresponding to the name load 
             #ps.vsc['VSC_SI'].par['name'] is an ndarray
             index_vsc = np.where(ps.vsc['VSC_SI'].par['name'] == link_name)[0]
-            ps.vsc['VSC_SI'].set_input('p_ref', 0,index_vsc)
+            ps.vsc['VSC_SI'].set_input('p_ref', -300/1400,index_vsc)
         result = sol.step()
         x = sol.y
         v = sol.v
@@ -188,6 +196,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
             # mean_freq = 50 + 50*np.mean(ps.gen['GEN'].speed(x,v))
             # FFR_activated,t_FFR,t_end_FFR = activate_FFR(ps, mean_freq,t, FFR_sources, FFR_activated,v,t_FFR,t_end_FFR)
             activate_FFR_load(ps, FFR_sources,FFR_activated_list,x,v,t)
+            activate_FFR_vsc(ps, FFR_sources,FFR_activated_list,x,v,t)
 
 
 
@@ -197,6 +206,8 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
         res['v'].append(v.copy())
         res['gen_I'].append(ps.gen['GEN'].I(x, v).copy())
         res['gen_P'].append(ps.gen['GEN'].P_e(x, v).copy())
+        res['line_P'].append(ps.lines['Line'].p_to(x, v).copy())
+        res['transformer_P'].append(ps.trafos['Trafo'].p_line(x, v).copy())
         if FFR_sources is not None:
             res['load_P'].append(ps.loads['DynamicLoad2'].P(x, v).copy())
             res['load_Q'].append(ps.loads['DynamicLoad2'].Q(x, v).copy())
@@ -212,5 +223,7 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
     res['VSC_name'].append(ps.vsc['VSC_SI'].par['name'])
     res['gen_name'].append(ps.gen['GEN'].par['name'])
     res['bus_names'].append(ps.buses['name'])
+    res['line_names'].append(ps.lines['Line'].par['name'])
+    res['trafos_names'].append(ps.trafos['Trafo'].par['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')

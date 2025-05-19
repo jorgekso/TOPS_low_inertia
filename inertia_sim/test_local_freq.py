@@ -9,7 +9,7 @@ importlib.reload(dps)
 import numpy as np
 import utility_functions_NJ as uf   
 from init_N45 import init_n45
-import tops.ps_models.n45_tuned as n45
+import tops.ps_models.n45_2030 as n45
 
 if __name__ == '__main__':
 

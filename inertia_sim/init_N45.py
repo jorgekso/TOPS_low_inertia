@@ -1,3 +1,10 @@
+'''
+This script is used to initialize the Nordic 45 system.
+This should be seen in combination with the trip_2030.py script, which is used to simulate a fault on the NorLink cable.
+'''
+
+
+
 import sys
 from collections import defaultdict
 import time
@@ -18,8 +25,6 @@ import tops.utility_functions_eirik as MThesis
 import pandas as pd
 import numpy as np 
 
-# Power system model 
-import tops.ps_models.n45_with_controls_HVDC as model_data
 
 
 
@@ -31,14 +36,29 @@ def init_n45(model_data, data_path, energy_mix,display_pf=False, fault_bus = '70
     Parameters:
     model_data : dictionary
         Dictionary containing the model data.
+    data_path : str
+        Path to the data files for the Nordic 45 system.
+    energy_mix : dictionary
+        Dictionary containing the energy mix for the different countries in the Nordic 45 system.
+    spinning_reserve : float
+        The amount of extra power generation that is available to be used in case of a fault.
+
+    Not all parameters are needed, but they are used to set the system up for a specific scenario.
+    display_pf : bool
+        If True, the power flow is displayed.
+    
+    kinetic_energy_eps : float
+        The kinetic energy of the EPS. It's not necessarily needed, but is used to scale the inertia of the system.
+
+    These parameters are not necessarily needed, only if there should be a disconnection of a generator.
     fault_bus : string
         The bus number of the fault.
     fault_Sn : float
         The nominal power of the fault.
     fault_P : float 
         The active power of the fault.
-    kinetic_energy_eps : float
-        The kinetic energy of the EPS.
+    virtual_gen : bool
+        If True, a virtual generator is added to the system.
 
     """
 

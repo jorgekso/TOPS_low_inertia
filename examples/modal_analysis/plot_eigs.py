@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
-    import tops.ps_models.n45_with_controls as model_data
+    import tops.ps_models.n44 as model_data
     model = model_data.load()
     ps = dps.PowerSystemModel(model=model)
     ps.init_dyn_sim()
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     dps_plt.plot_eigs(ps_lin.eigs)
 
     # Get mode shape for electromechanical modes
-    mode_idx = ps_lin.get_mode_idx(['em'], damp_threshold=0.3)
+    mode_idx = ps_lin.get_mode_idx(['em'], damp_threshold=0.2)
     rev = ps_lin.rev
     mode_shape = rev[np.ix_(ps.gen['GEN'].state_idx_global['speed'], mode_idx)]
 

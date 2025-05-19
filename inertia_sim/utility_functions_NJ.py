@@ -1,3 +1,12 @@
+'''
+This script contains utility functions for processing and plotting simulation results.
+It includes functions to read and format results from JSON files, plot various system parameters such as generator power, frequency, voltage, and load power, and import data from Excel files.
+The script is designed to work with the Nordic 45 system and includes functions for plotting results from different scenarios, including generator trips and power flow data.
+The script also includes functions to plot the different results of VSC power.
+The implementation of the plotting functions is done in the Plot_n45.py script.
+'''
+
+
 import numpy as np 
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -92,6 +101,7 @@ def plot_gen_power(results, file_names, gen_name=None):
         else:
             for gen in res['gen_name']:
                 plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'].index(gen)], label=gen)
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.ylabel('Power [MW]')
     plt.grid()
@@ -184,7 +194,7 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
                 print("Error: Required columns are missing from the data.")
             else:
                 data['mean_freq'] = data[['Frequency: FI', 'Frequency: NO1', 'Frequency: NO2', 'Frequency: NO3']].mean(axis=1)
-                plt.plot(data['Seconds'], data['Frequency: FI'], label='FI')
+                plt.plot(data['Seconds'], data['Frequency: FI'], label='Real data')
                 # plt.plot(data['Seconds'], data['Frequency: NO1'], label='NO1')
                 # plt.plot(data['Seconds'], data['Frequency: NO2'], label='NO2')
                 # plt.plot(data['Seconds'], data['Frequency: NO3'], label='NO3')
@@ -242,6 +252,7 @@ def plot_power_VSC(results, file_names, VSC_name):
         plt.plot(res['t'], power, label = file_names[it].stem)
         # plt.plot(res['t'], ([row[index] for row in res['VSC_p']]), label = file_names[it].stem)# label = res['VSC_name'][0][index]+' '+file_names[i].stem)
         it += 1
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.legend()
     plt.ylabel('Power [MW]')
@@ -285,6 +296,7 @@ def plot_power_load(results, file_names, load_name=None):
         else:
             for load in res['load_name'][0]:
                 plt.plot(res['t'], np.array(res['load_P'])[:, res['load_name'][0].index(load)], label=load)
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.ylabel('Power [MW]')
     plt.grid()
@@ -311,6 +323,7 @@ def plot_voltage(results, file_names, bus_name=None):
         else:
             for bus in res['bus_names'][0]:
                 plt.plot(res['t'], np.array(res['v'])[:, res['bus_names'][0].index(bus)], label=bus)
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.ylabel('Voltage [p.u.]')
     plt.grid()
@@ -328,6 +341,7 @@ def plot_local_freq(results, file_names, load_name, gen_name,  mean_freq = False
         it += 1
     if mean_freq == True:
         plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1),label = 'mean_freq')
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.ylabel('Freq [Hz]')
     plt.grid()
@@ -347,7 +361,68 @@ def plot_local_freq_test(results, file_names, load_name, gen_name,  mean_freq = 
         
     if mean_freq == True:
         plt.plot(res['t'], 50 + 50*np.mean(res['gen_speed'], axis=1),label = 'mean_freq')
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.ylabel('Freq [Hz]')
     plt.grid()
+    plt.legend()
+def plot_line_p(results, file_names, line_name):
+    """
+    Plot line power results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+    line_name : string
+        Name of the line to plot.
+    """
+    base_mva = 1000
+    plt.figure()
+    it = 0
+    for res in results:
+        idx = []
+        i = 0
+        for line in res['line_names'][0]:
+            if line == line_name:
+                idx.append(i)
+            i += 1
+        i=0  
+        #to only plot one line  
+        idx = res['line_names'][0].index(line_name)
+        plt.plot(res['t'], np.array(res['line_P'])[:, idx]*base_mva, label=line_name + ' ' + file_names[it].stem)
+        it += 1
+    plt.xlim(10, 20)  # Start x-axis at 10s
+    plt.xlabel('Time [s]')
+    plt.ylabel('Power [MW]')
+    plt.grid()  
+    plt.legend()
+
+def plot_trafos_p(results, file_names, trafo_name):
+    """
+    Plot transformer power results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+    trafos : string
+        Name of the transformer to plot.
+    """
+    base_mva = 1000
+    plt.figure()
+    it = 0
+    for res in results:
+        idx = []
+        i = 0
+        #to only plot one line  
+        idx = res['trafos_names'][0].index(trafo_name)
+        plt.plot(res['t'], np.array(res['transformer_P'])[:, idx]*base_mva, label=trafo_name + ' ' + file_names[it].stem)
+        it += 1
+    plt.xlim(10, 20)  # Start x-axis at 10s
+    plt.xlabel('Time [s]')
+    plt.ylabel('Power [MW]')
+    plt.grid()  
     plt.legend()

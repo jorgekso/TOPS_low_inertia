@@ -129,7 +129,7 @@ class VSC_SI(DAEModel):
         p_ref: outer loop active power setpoint
         q_ref: outer loop reactive power setpoint
         """
-        return ['p_ref', 'q_ref']
+        return ['p_ref', 'q_ref', 't_ffr_start', 't_ffr_end', 'P_ffr']
 
     def state_derivatives(self, dx, x, v):
         dX = self.local_view(dx)
@@ -206,7 +206,17 @@ class VSC_SI(DAEModel):
     def q_e(self, x, v):
         return self.s_e(x,v).imag
     
-
+    # FFR tools
+    def freq_est(self, x, v):
+        X = self.local_view(x)
+        freq = X['angle']/(2*np.pi)
+        return 50 + freq
+    
+    def FFR(self, x, v,t,index):
+        inputs = self._input_values
+        par = self.par
+        if inputs['t_ffr_start'][index] <= t  and t > 0:
+            inputs['p_ref'][index] = par['p_ref'][index] + inputs['P_ffr'][index]/self.sys_par['s_n']
         
 
 

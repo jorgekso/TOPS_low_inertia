@@ -1,3 +1,9 @@
+'''
+This script is used to implement the FFR in the Nordic 45 system.
+At the bottom of the script, a test case is implemented, where the FFR is activated in the system.
+'''
+
+
 import numpy as np 
 
 
@@ -64,19 +70,36 @@ def activate_FFR(ps, mean_freq,t, ffr_names,activated,v,t_FFR,t_end_FFR):
 
 
 def activate_FFR_load(ps, ffr_names,ffr_activated_list,x,v,t):
+    # Check if the frequency is below 49.5 Hz
     for load_name in ps.loads['DynamicLoad2'].par['name']:
         if load_name in ffr_names and load_name not in ffr_activated_list:
             index = np.where(ps.loads['DynamicLoad2'].par['name'] == load_name)[0]
-            if(ps.loads['DynamicLoad2'].freq_est(x,v)[index] < 49.7):
-                ps.loads['DynamicLoad2'].set_input('t_ffr_start', t+1.2, index)
-                ps.loads['DynamicLoad2'].set_input('t_ffr_end', t+1.2+30, index)
+            if(ps.loads['DynamicLoad2'].freq_est(x,v)[index] < 49.5):
+                ps.loads['DynamicLoad2'].set_input('t_ffr_start', t+0.7, index)
+                ps.loads['DynamicLoad2'].set_input('t_ffr_end', t+0.7+30, index)
                 ps.loads['DynamicLoad2'].set_input('P_ffr', 50, index)
                 ffr_activated_list.append(load_name)
+    # Activate the FFR
     for load_name in ps.loads['DynamicLoad2'].par['name']:
         if load_name in ffr_activated_list:
             index = np.where(ps.loads['DynamicLoad2'].par['name'] == load_name)[0]
             ps.loads['DynamicLoad2'].FFR(x,v,t,index)
-                
+
+def activate_FFR_vsc(ps, ffr_names,ffr_activated_list,x,v,t):
+    # Check if the frequency is below 49.5 Hz
+    for vsc_name in ps.vsc['VSC_SI'].par['name']:
+        if vsc_name in ffr_names and vsc_name not in ffr_activated_list:
+            index = np.where(ps.vsc['VSC_SI'].par['name'] == vsc_name)[0]
+            if(ps.vsc['VSC_SI'].freq_est(x,v)[index] < 49.7):
+                ps.vsc['VSC_SI'].set_input('t_ffr_start', t, index)
+                ps.vsc['VSC_SI'].set_input('t_ffr_end', t+30, index)
+                ps.vsc['VSC_SI'].set_input('P_ffr', 100, index)
+                ffr_activated_list.append(vsc_name)
+    # Activate the FFR
+    for vsc_name in ps.vsc['VSC_SI'].par['name']:
+        if vsc_name in ffr_activated_list:
+            index = np.where(ps.vsc['VSC_SI'].par['name'] == vsc_name)[0]
+            ps.vsc['VSC_SI'].FFR(x,v,t,index)
 
 
 def check_FFR_source(ps, FFR_sources):
@@ -90,7 +113,7 @@ def check_FFR_source(ps, FFR_sources):
 if __name__ == '__main__':
     
     import init_N45 as func
-    import tops.ps_models.n45_with_controls_HVDC as n45
+    import tops.ps_models.n45_2030 as n45
 
     from inertia_sim.fault_events import gen_trip, HVDC_cable_trip
 
@@ -127,14 +150,7 @@ if __name__ == '__main__':
     
     HVDC_cable_trip(ps,folderandfilename = 'FFR_FI/50 MW',t=0,t_end=50,t_trip = 17.6,event_flag = True, 
                     link_name = 'NO_2-DE',FFR = True, FFR_sources = FFR_sources)
-    # func.run_sensitivity(ps,'r',[3.5,3,2.5,2,1.5],foldername = 'r_sensitivity/')
-    #func.gen_trip(ps=ps,fault_bus = '5230',fault_Sn = 792,fault_P = 792,kinetic_energy_eps = 300e3, 
-    # folderandfilename = 'NordLink/test1',t=0,t_end=50,t_trip = 17.6,event_flag = True,VSC=False)
-    # func.gen_trip(ps=ps,folderandfilename = '2030_scenario/test', fault_bus = '5230',fault_Sn = 1400,
-    #               fault_P = 1400,event_flag=True, VSC=True, t_trip = 10.81)
-
-    # func.HVDC_cable_trip(ps=ps,folderandfilename = 'Spinning reserves/2030 0,76',
-    #                      link_name = 'NO_2-DE',t_trip=10.81,event_flag=False,t_end=50)
+    
     
 
     
