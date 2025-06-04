@@ -113,7 +113,7 @@ def check_FFR_source(ps, FFR_sources):
 if __name__ == '__main__':
     
     import init_N45 as func
-    import tops.ps_models.n45_2030 as n45
+    import tops.ps_models.n45_2_0 as n45
 
     from inertia_sim.fault_events import gen_trip, HVDC_cable_trip
 

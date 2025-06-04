@@ -27,7 +27,7 @@ importlib.reload(dps)
 
 
 if __name__ == '__main__':
-    import tops.ps_models.n45_2030 as n45
+    import tops.ps_models.n45_2_0 as n45
     import init_N45 as init
     energy_mix_2030 = {'FI': {'Wind': 0.7, 'Hydro': 0.1, 'Nuclear': 0.2, 'Solar': 0.0, 'Fossil': 0.0},
                 'NO_1': {'Wind': 0.5, 'Hydro': 0.5, 'Nuclear': 0.0, 'Solar': 0.0, 'Fossil': 0.0},

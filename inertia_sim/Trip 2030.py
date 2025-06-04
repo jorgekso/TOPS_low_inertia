@@ -10,7 +10,7 @@ if __name__ == '__main__':
     #The fault is a reversal of power flow on the cable, which leads to a fault of 1675MW. 
     import init_N45 as init
     import fault_events as fault
-    import tops.ps_models.n45_2030 as n45
+    import tops.ps_models.n45_2_0 as n45
 
     '''
     The energy mix for the different countries in the Nordic 45 system is defined below.
