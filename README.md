@@ -1,4 +1,4 @@
-This repository is a fork of Eirik Stendshorne Sanden's GitHub, which itself is a copy of the TOPS model originally developed by Hallvar Haugdal: https://github.com/hallvar-h/TOPS/
+This repository is a fork of Eirik Stendshorne Sanden's GitHub, https://github.com/eirissa/TOPS, which itself is a copy of the TOPS model originally developed by Hallvar Haugdal: https://github.com/hallvar-h/TOPS/
 
 This version has been modified to study the Nordic 45 model (N45), which represents the Nordic Synchronous Area. The N45 model used here is an adapted version from Martin G. Teignes. It has been further extended to include: Voltage Source Converter (VSC) HVDC transmission, Wind power modeled as VSCs, Power System Stabilizers (PSS). With these additional features, the N45 model has been appropriately tuned.
 
