@@ -201,6 +201,21 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
 
 
         dx = ps.ode_fun(0, ps.x_0)
+        '''
+        The following lines are used to store the results of the simulation.
+        The results are stored in a dictionary called res. 
+        It is possible to add more results to the dictionary by adding more lines in the following format:
+        res['key'].append(value)
+        where key is the name of the result and value is the value of the result.
+        The results are stored in the following format:
+        res = {
+            't': [timestep1', timestep2, ...],
+            'gen_speed': [[speed1, speed2, ...], ...],
+        }
+
+        '''
+
+
         res['t'].append(t)
         res['gen_speed'].append(ps.gen['GEN'].speed(x, v).copy())
         res['v'].append(v.copy())
@@ -211,11 +226,24 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
         if FFR_sources is not None:
             res['load_P'].append(ps.loads['DynamicLoad2'].P(x, v).copy())
             res['load_Q'].append(ps.loads['DynamicLoad2'].Q(x, v).copy())
+            res['load_rocof'].append(ps.loads['DynamicLoad2'].rocof_est(x, v).copy())
+            res['load_freq'].append(ps.loads['DynamicLoad2'].freq_est(x, v).copy())
         else:
             res['load_P'].append(ps.loads['Load'].P(x, v).copy())
             res['load_Q'].append(ps.loads['Load'].Q(x, v).copy())
+        
         res['VSC_p'].append(ps.vsc['VSC_SI'].p_e(x, v).copy())
         res['VSC_Sn'].append(ps.vsc['VSC_SI'].par['S_n'])
+        res['VSC_rocof'].append(ps.vsc['VSC_SI'].rocof_est(x, v).copy())
+        res['VSC_freq'].append(ps.vsc['VSC_SI'].freq_est(x, v).copy())
+
+    '''
+    The following lines are used to store the names of the different components in the system.
+    The names are stored in the following format:
+    res = {
+        'load_name': [[name1, name2, ...]],
+    }
+    '''
     if FFR_sources is not None:
         res['load_name'].append(ps.loads['DynamicLoad2'].par['name'])
     else:
@@ -226,4 +254,6 @@ def HVDC_cable_trip(ps,folderandfilename,t=0,t_end=50,t_trip = 10.81,event_flag 
     res['line_names'].append(ps.lines['Line'].par['name'])
     res['trafos_names'].append(ps.trafos['Trafo'].par['name'])
     print('Simulation completed in {:.2f} seconds.'.format(time.time() - t_0))
+
+    # Store the results in a JSON file
     uf.read_to_file(res, 'Results/'+folderandfilename+'.json')

@@ -84,7 +84,7 @@ class VSC_SI(DAEModel):
     'vsc': {
             'VSC_SI': [
                 ['name', 'bus', 'S_n', 'p_ref', 'q_ref',  'k_p', 'k_q', 'T_p', 'T_q', 'k_pll','T_pll', 'T_i', 'i_max', 'K_SI, 'T_SI','P_SI_max'],
-                ['VSC1', 'B1',    50,     1,       0,       1,      1,    0.1,   0.1,     5,      1,      0.01,    1.2, 10,     1,     1.2],
+                ['VSC1', 'B1',    50,     1,       0,       1,      1,    0.1,   0.1,     5,      0.1,      0.01,    1.2, 0.03,     0.1,     1.2],
             ],
         }
     """
@@ -150,7 +150,7 @@ class VSC_SI(DAEModel):
         i_ref = i_ref*par['i_max']/np.maximum(par['i_max'],abs(i_ref))
         X['x_p'] = np.maximum(np.minimum(X['x_p'],par['i_max']),-par['i_max'])
         X['x_q'] = np.maximum(np.minimum(X['x_q'],par['i_max']),-par['i_max'])
-
+        
         dX['i_d'][:] = 1 / (par['T_i']) * (i_ref.real - X['i_d'])
         dX['i_q'][:] = 1 / (par['T_i']) * (i_ref.imag - X['i_q'])
         dX['x_p'][:] = par['k_p'] / (par['T_p']) * dp
@@ -158,8 +158,8 @@ class VSC_SI(DAEModel):
         dX['x_pll'][:] = par['k_pll'] / (par['T_pll']) * (self.v_q(x,v))
         dX['angle'][:] = X['x_pll']+par['k_pll']*self.v_q(x,v)
 
-        rocof = par['k_pll'] / (par['T_pll']) * (self.v_q(x,v))
-        dX['rocof'][:] = 1/par['T_SI']*(rocof-X['rocof'])
+        X['rocof'] = par['k_pll'] / (par['T_pll']) * (self.v_q(x,v))
+        # dX['rocof'][:] = 1/par['T_SI']*(rocof-X['rocof'])
         return
 
     def init_from_load_flow(self, x_0, v_0, S):
@@ -209,8 +209,17 @@ class VSC_SI(DAEModel):
     # FFR tools
     def freq_est(self, x, v):
         X = self.local_view(x)
-        freq = X['angle']/(2*np.pi)
+        freq = X['x_pll']/(2*np.pi)
         return 50 + freq
+    
+    def rocof_est(self, x, v):
+        X = self.local_view(x)
+        par = self.par
+        k_pll = par['k_pll']
+        T_pll = par['T_pll']
+        v_q = self.v_q(x,v)
+        rocof = par['k_pll'] / (par['T_pll']) * (self.v_q(x,v))
+        return rocof/(2*np.pi)
     
     def FFR(self, x, v,t,index):
         inputs = self._input_values

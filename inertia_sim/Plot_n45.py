@@ -28,8 +28,8 @@ if __name__ == '__main__':
     The system_path variable is used to define the path to the system folder.
     The subfolder of Results are a folder containing the different result .json files.
     '''
-    folder_path = system_path + 'Results/FFR/'
-
+    # folder_path = system_path + 'Results/Real inertia vs SI/'
+    folder_path = system_path + 'Results/Summary/'
 
     # The results and file_names variables are used to store the results and file names of the .json files in the folder.
     results, file_names = uf.format_results(folder_path)
@@ -40,19 +40,30 @@ if __name__ == '__main__':
     There are several different plot functions, each used to plot different results.
     Below are some examples of the plot functions that can be used, and their initialization.
     '''
+    
     # uf.plot_freq(results, file_names, scenario = 'NordLink')
     uf.plot_freq(results, file_names)
+    # uf.plot_freq(results, file_names,rocof=True)
+    # uf.plot_freq(results, file_names, gen='G5230-1',rocof=True)
+    # uf.plot_freq(results, file_names, gen='G7000-1',scenario='NordLink')
     # uf.plot_power_load(results, file_names,'L3000-1')
     # uf.plot_voltage(results, file_names, complex(5110,0))
     # results, file_names = uf.format_results(folder_path2)
     # uf.plot_freq(results, file_names)
     # uf.plot_gen(results, file_names)
-    # uf.plot_gen_power(results, file_names, 'G5240-1')
-    # uf.plot_gen_power(results, file_names, 'SC3249-1')
+    # uf.plot_gen_power(results, file_names, 'G5120-1')
+    # uf.plot_gen_power(results, file_names, 'SC5230-1')
+    # uf.plot_gen_power(results, file_names, 'SC5230-2')
+    # uf.plot_gen_power(results, file_names, 'SC5240-1')
     # uf.plot_gen_speed(results, file_names, 'G5240-1')
     # uf.plot_gen_speed(results, file_names, 'G7000-1')
     # uf.plot_gen_speed(results, file_names, 'G7100-1')
-  
+    # uf.plot_load_freq(results, file_names, 'L5120-1')
+    # uf.plot_load_rocof(results, file_names, 'L5120-1')
+    # uf.plot_VSC_freq(results, file_names, 'WG5120-1')
+    # uf.plot_VSC_rocof(results, file_names, 'WG5230-1')
+    # uf.plot_power_VSC(results, file_names, 'WG5230-1')
+    # uf.plot_VSC_rocof(results, file_names, 'NO_2-GB')
     # uf.plot_power_VSC(results, file_names, 'WG3000-1')
     # uf.plot_power_VSC(results, file_names, 'WG5120-1')
     # uf.plot_power_VSC(results, file_names, 'WG7000-1')
@@ -60,7 +71,7 @@ if __name__ == '__main__':
     # uf.plot_power_VSC(results, file_names, 'NO_2-GB')
     # uf.plot_power_VSC(results, file_names, 'NO_2-DE')
     # uf.plot_power_VSC(results, file_names, 'SE_4-LT')
-    uf.plot_line_p(results, file_names, 'L3359-5110')
+    # uf.plot_line_p(results, file_names, 'L3359-5110')
     # uf.plot_trafos_p(results, file_names, 'T5130-5320')
 
     # uf.plot_power_VSC(results, file_names, 'WG3000-1')

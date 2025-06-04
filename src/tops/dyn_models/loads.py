@@ -284,6 +284,11 @@ class DynamicLoad2(DAEModel):
         X = self.local_view(x)
         freq = X['x_est']/(2*np.pi)
         return 50 + freq
+    def rocof_est(self, x, v):
+        par = self.par
+        # rocof = dX['x_est']
+        rocof = par['K_est']/par['T_est']*(self.v_q(x,v))
+        return rocof/(2*np.pi)
 
     def FFR(self, x, v,t,index):
         inputs = self._input_values

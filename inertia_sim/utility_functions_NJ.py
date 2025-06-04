@@ -95,8 +95,9 @@ def plot_gen_power(results, file_names, gen_name=None):
     plt.figure()
     it = 0   
     for res in results:
-        if gen_name:
-            plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
+        if gen_name is not None:
+            if gen_name in res['gen_name'][0]:
+                plt.plot(res['t'], np.array(res['gen_P'])[:, res['gen_name'][0].index(gen_name)], label=gen_name+' ' + file_names[it].stem)
             it += 1
         else:
             for gen in res['gen_name']:
@@ -161,10 +162,27 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
         plt.figure()
         it = 0
         for res in results:
-            gen_index = res['gen_name'].index(gen)
-            plt.plot(res['t'], 50 + 50*np.array(res['gen_speed'])[:,gen_index], label = file_names[it].stem)
+            gen_index = res['gen_name'][0].index(gen)
+            if file_names[it].stem[0] == '0':
+                plt.plot(res['t'], 50 + 50*np.array(res['gen_speed'])[:,gen_index], label = file_names[it].stem[1:])
+            else:
+                plt.plot(res['t'], 50 + 50*np.array(res['gen_speed'])[:,gen_index], label = file_names[it].stem)
             it += 1
+        if scenario == 'NordLink':
+            #This is used to plot the real frequency data from the NordLink case
+            from plot_NordLink_data import import_NordLink_data
+            from config import system_path
+            path = system_path+'inertia_sim/N45_case_data_NordLink/Case-Norlink.xlsx'
+            data = import_NordLink_data(path)
 
+
+            # Check if the necessary columns exist
+            required_columns = ['Timestamp', 'Frequency: FI', 'Frequency: NO1', 'Frequency: NO2', 'Frequency: NO3']
+            if not all(col in data.columns for col in required_columns):
+                print("Error: Required columns are missing from the data.")
+            else:
+                data['mean_freq'] = data[['Frequency: FI', 'Frequency: NO1', 'Frequency: NO2', 'Frequency: NO3']].mean(axis=1)
+                plt.plot(data['Seconds'], data['Frequency: FI'], label='Real data')
 
     else:
         plt.figure()
@@ -181,7 +199,7 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
             it += 1
 
         if scenario == 'NordLink':
-
+            #This is used to plot the real frequency data from the NordLink case
             from plot_NordLink_data import import_NordLink_data
             from config import system_path
             path = system_path+'inertia_sim/N45_case_data_NordLink/Case-Norlink.xlsx'
@@ -212,9 +230,25 @@ def plot_freq(results, file_names, rocof=False, scenario = None, gen = None):
     if rocof:
         plt.figure()
         it = 0   
-        for res in results:
-            plt.plot(res['t'], np.gradient(50 + 50*np.mean(res['gen_speed'], axis=1), res['t']), label = file_names[it].stem)
-            it += 1
+        if gen is not None:
+            for res in results:
+
+                gen_index = res['gen_name'][0].index(gen)
+                if file_names[it].stem[0] == '0':
+                    plt.plot(res['t'], np.gradient(50 + 50*np.array(res['gen_speed'])[:,gen_index], res['t']), label = file_names[it].stem[1:])
+                    it += 1
+                else:
+                    plt.plot(res['t'], np.gradient(50 + 50*np.array(res['gen_speed'])[:,gen_index], res['t']), label = file_names[it].stem)
+                    it += 1
+        else:
+            for res in results:
+                if file_names[it].stem[0] == '0':
+                    plt.plot(res['t'], np.gradient(50 + 50*np.mean(res['gen_speed'], axis=1), res['t']), label = file_names[it].stem[1:])
+                    it += 1
+                else:
+                    plt.plot(res['t'], np.gradient(50 + 50*np.mean(res['gen_speed'], axis=1), res['t']), label = file_names[it].stem)
+                    it += 1
+        plt.xlim(10, max(res['t']))  # Start x-axis at 10s
         plt.xlabel('Time [s]')
         plt.ylabel('ROCOF [Hz/s]')
         plt.grid()
@@ -258,8 +292,117 @@ def plot_power_VSC(results, file_names, VSC_name):
     plt.ylabel('Power [MW]')
     #plt.title(f'Active power output from {res['VSC_name'][0][index]}')
     plt.grid()
- 
+def plot_load_freq(results, file_names, load_name):
+    """
+    Plot load frequency results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+    load_name : string
+        Name of the load to plot.
+    """
+    plt.figure()
+    it = 0
+    for res in results:
+        plt.plot(res['t'], np.array(res['load_freq'])[:, res['load_name'][0].index(load_name)], label=load_name+' ' + file_names[it].stem)
+        it += 1
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
+    plt.xlabel('Time [s]')
+    plt.ylabel('Frequency [Hz]')
+    plt.grid()
+    plt.legend()
+
+
+def plot_load_rocof(results, file_names, load_name):
+    """
+    Plot load ROCOF results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+    load_name : string
+        Name of the load to plot.
+    """
+    plt.figure()
+    it = 0
+    for res in results:
+        plt.plot(res['t'], np.array(res['load_rocof'])[:, res['load_name'][0].index(load_name)], label=load_name+' ' + file_names[it].stem)
+        it += 1
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
+    plt.xlabel('Time [s]')
+    plt.ylabel('Rocof [Hz/s]')
+    plt.grid()
+    plt.legend()
+
+
+def plot_VSC_freq(results, file_names, VSC_name):
+    """
+    Plot VSC frequency results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+    VSC_name : string
+        Name of the VSC to plot.
+    """
+    plt.figure()
+    index = 0
+    for name in results[0]['VSC_name'][0]:
+        if(name == VSC_name):
+            break
+        else:
+            index += 1
+    it = 0
     
+    for res in results:
+        
+        plt.plot(res['t'], np.array(res['VSC_freq'])[:, index], label = file_names[it].stem)
+        it += 1
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
+    plt.xlabel('Time [s]')
+    plt.legend()
+    plt.ylabel('Frequency [Hz]')
+    plt.grid()
+
+
+def plot_VSC_rocof(results, file_names, VSC_name):
+    """
+    Plot VSC ROCOF results from simulation.
+
+    Parameters:
+    results : list of dictionaries
+        List of dictionaries containing simulation results.
+    file_names : list of strings
+        List of file names.
+    VSC_name : string
+        Name of the VSC to plot.
+    """
+    plt.figure()
+    index = 0
+    for name in results[0]['VSC_name'][0]:
+        if(name == VSC_name):
+            break
+        else:
+            index += 1
+    it = 0
+    
+    for res in results:
+        plt.plot(res['t'], np.array(res['VSC_rocof'])[:, index], label = file_names[it].stem)
+        it += 1
+    plt.xlim(10, max(res['t']))  # Start x-axis at 10s
+    plt.xlabel('Time [s]')
+    plt.legend()
+    plt.ylabel('Rocof [Hz/s]')
+    plt.grid()
+
+  
 def plot_gen_speed(results, file_names, gen_name=None):
     """
     Plot generator speed results from simulation.
@@ -285,7 +428,8 @@ def plot_gen_speed(results, file_names, gen_name=None):
     plt.ylabel('Speed [p.u.]')
     plt.grid()
     plt.legend()
-    
+
+ 
 def plot_power_load(results, file_names, load_name=None):
     plt.figure()
     it = 0
@@ -301,6 +445,7 @@ def plot_power_load(results, file_names, load_name=None):
     plt.ylabel('Power [MW]')
     plt.grid()
     plt.legend()
+
 
 def plot_voltage(results, file_names, bus_name=None):
     '''
@@ -366,6 +511,8 @@ def plot_local_freq_test(results, file_names, load_name, gen_name,  mean_freq = 
     plt.ylabel('Freq [Hz]')
     plt.grid()
     plt.legend()
+
+
 def plot_line_p(results, file_names, line_name):
     """
     Plot line power results from simulation.
@@ -391,13 +538,21 @@ def plot_line_p(results, file_names, line_name):
         i=0  
         #to only plot one line  
         idx = res['line_names'][0].index(line_name)
-        plt.plot(res['t'], np.array(res['line_P'])[:, idx]*base_mva, label=line_name + ' ' + file_names[it].stem)
-        it += 1
+        if file_names[it].stem[0] == '0':
+            plt.plot(res['t'], np.array(res['line_P'])[:, idx]*base_mva, label=line_name + ' ' + file_names[it].stem[1:])
+            it+= 1
+        else:
+            plt.plot(res['t'], np.array(res['line_P'])[:, idx]*base_mva, label=line_name + ' ' + file_names[it].stem)
+            it += 1
+    
     plt.xlim(10, 20)  # Start x-axis at 10s
     plt.xlabel('Time [s]')
     plt.ylabel('Power [MW]')
+    
     plt.grid()  
     plt.legend()
+    
+
 
 def plot_trafos_p(results, file_names, trafo_name):
     """

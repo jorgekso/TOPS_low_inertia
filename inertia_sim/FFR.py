@@ -86,14 +86,14 @@ def activate_FFR_load(ps, ffr_names,ffr_activated_list,x,v,t):
             ps.loads['DynamicLoad2'].FFR(x,v,t,index)
 
 def activate_FFR_vsc(ps, ffr_names,ffr_activated_list,x,v,t):
-    # Check if the frequency is below 49.5 Hz
+    # Check if the frequency is below 49.7 Hz
     for vsc_name in ps.vsc['VSC_SI'].par['name']:
         if vsc_name in ffr_names and vsc_name not in ffr_activated_list:
             index = np.where(ps.vsc['VSC_SI'].par['name'] == vsc_name)[0]
             if(ps.vsc['VSC_SI'].freq_est(x,v)[index] < 49.7):
                 ps.vsc['VSC_SI'].set_input('t_ffr_start', t, index)
                 ps.vsc['VSC_SI'].set_input('t_ffr_end', t+30, index)
-                ps.vsc['VSC_SI'].set_input('P_ffr', 100, index)
+                ps.vsc['VSC_SI'].set_input('P_ffr', 50, index)
                 ffr_activated_list.append(vsc_name)
     # Activate the FFR
     for vsc_name in ps.vsc['VSC_SI'].par['name']:
